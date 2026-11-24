@@ -1,0 +1,230 @@
+:root {
+  --bg: #121118;
+  --panel: #1f1d2a;
+  --panel-2: #2b2839;
+  --text: #ece8f4;
+  --muted: #a39db3;
+  --gold: #f2b84b;
+  --select: #7fd8ff;
+  color-scheme: dark;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font: inherit; color: inherit; }
+.muted { color: var(--muted); }
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Sticky header: title, HUD, ticker. */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  padding-top: max(12px, env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.title { margin: 0; font-size: 1.1rem; text-align: center; color: var(--gold); letter-spacing: 0.04em; }
+
+.hud {
+  display: grid;
+  grid-template-columns: 1fr 1.8fr 1fr;
+  gap: 8px;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 10px;
+}
+.hud-stat { display: flex; flex-direction: column; align-items: center; }
+.hud-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+.hud-value { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hud-main .hud-value { color: var(--gold); font-size: 1.4rem; }
+.hud-sub { font-size: 0.7rem; color: var(--muted); }
+
+.ticker { margin: 0; min-height: 2.6em; font-size: 0.8rem; color: var(--muted); text-align: center; }
+
+/* ── The Chain: newest Mine on top ─────────────────────────────────────────── */
+.chain { display: flex; flex-direction: column; gap: 16px; }
+
+.level {
+  --ink: var(--text);
+  --ink-dim: color-mix(in srgb, var(--ink) 40%, transparent);
+  background: var(--rock-dark);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink);
+}
+.level .muted { color: var(--ink-dim); }
+.level-header { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; padding: 0 4px; }
+.level-footer { margin: 0; font-size: 0.8rem; padding: 0 4px; }
+
+/* The Mine: Wall + cells, flush like a text-mode screen. No gaps, no borders between cells. */
+.mine-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 0;
+  line-height: 1;
+  user-select: none;
+}
+.wall, .cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  container-type: size; /* lets glyphs size themselves to the cell (cqh units) */
+  color: var(--ink);
+}
+/* Text-mode glyphs are half-width (8×16, like VGA). Fill the square cell: full height, 2× wide,
+   so walls join up and shading flows from cell to cell. */
+.wall .glyph, .cell:not(.cell-label) .glyph, .dwarf .glyph {
+  display: inline-block;
+  font-size: 100cqh;
+  line-height: 1;
+  transform: scaleX(2);
+}
+.wall { color: var(--ink-dim); }
+.wall-port, .wall-entry { color: var(--ink); cursor: pointer; }
+.wall-selected { animation: blink 1s steps(2) infinite; }
+
+.cell { cursor: pointer; color: var(--ink-dim); }
+.cell-lit { color: var(--ink); }
+.cell-item .glyph { color: var(--gold); }
+.cell-hardware { color: var(--ink); background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.cell-label .glyph { font-size: 34cqh; letter-spacing: -0.02em; white-space: nowrap; }
+.cell-selected { background: color-mix(in srgb, var(--ink) 25%, transparent); }
+.cell-full .glyph { animation: pulse 1.4s ease-in-out infinite; }
+
+/* Tiny number: a bit-rock's Level, a Device's Level, a monster's HP, a dwarf's Level. */
+.tiny {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  font-size: 30cqh;
+  line-height: 1;
+  padding: 0 0.15em;
+  background: var(--tiny-bg, var(--rock-dark)); /* readable over a solid ▓ rock */
+  z-index: 1;
+}
+
+/* Dwarves: just a glyph in the cell. Tab-focusable, keyboard-movable, draggable. */
+.dwarf {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: inherit;
+  cursor: grab;
+  touch-action: none; /* let touch drags move the dwarf instead of scrolling */
+  z-index: 1;
+}
+.dwarf:focus { outline: none; }
+.dwarf-selected .glyph { animation: blink 0.5s steps(2, jump-none) infinite; }
+.dwarf-dragging { opacity: 0.35; }
+.drag-ghost {
+  position: fixed;
+  z-index: 10;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  pointer-events: none;
+  color: var(--gold);
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+/* Panels */
+.panel { background: var(--panel); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.panel h3 { margin: 0; font-size: 0.95rem; }
+.panel p { margin: 0; font-size: 0.75rem; }
+.panel-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.panel-actions button {
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.panel-actions button:disabled { opacity: 0.45; cursor: default; }
+
+/* Chips inventory */
+.inventory { background: var(--panel); border-radius: 12px; padding: 10px; }
+.inventory h2 { margin: 0 0 6px; font-size: 0.9rem; }
+.inventory ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.8rem; }
+.inventory li { display: flex; justify-content: space-between; gap: 8px; }
+.inventory p { margin: 0; font-size: 0.8rem; }
+
+/* ── CRT Theme: everything inside the Mine is phosphor green ───────────────────
+   Font stack: retro face for ASCII → Unifont for nearly any other character → monochrome emoji
+   (as a safety net only: Themes use no emoji). Change --crt-face to 'Sixtyfour' or 'Workbench'. */
+.theme-crt {
+  --crt-face: 'VT323';
+  --phosphor: #5dff7a;
+  --ink: var(--phosphor);
+  --ink-dim: #1f7a35;
+  --accent: var(--phosphor);
+  --gold: var(--phosphor);
+  --panel: #0a140b;
+  --panel-2: #0f1f10;
+  --tiny-bg: #050a06;
+  position: relative;
+  font-family: var(--crt-face), 'DMD Unifont', 'Noto Emoji', monospace;
+  font-variant-emoji: text;
+  text-shadow: 0 0 2px var(--phosphor), 0 0 8px color-mix(in srgb, var(--phosphor) 40%, transparent);
+  background: radial-gradient(ellipse at center, #0b1a0e 0%, #050a06 85%);
+}
+.theme-crt button { font-family: inherit; }
+.theme-crt .wall, .theme-crt .cell { font-family: 'DMD Unifont', var(--crt-face), monospace; }
+.theme-crt .tiny, .theme-crt .cell-label .glyph { font-family: var(--crt-face), 'DMD Unifont', monospace; }
+.theme-crt .cell-label .glyph { font-size: 40cqh; }
+.theme-crt .tiny { font-size: 38cqh; text-shadow: none; }
+.theme-crt .panel-actions button { border-radius: 0; font-size: 1rem; }
+.theme-crt .panel h3 { font-size: 1.15rem; font-weight: 400; }
+.theme-crt .panel p { font-size: 0.95rem; }
+.theme-crt .drag-ghost { color: var(--phosphor); }
+/* Scan lines, vignette and an occasional flicker over the Mine; they ignore clicks. */
+.theme-crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.55) 100%);
+  animation: flicker 6s infinite;
+}
+@keyframes flicker { 0%, 97%, 100% { opacity: 1; } 98% { opacity: 0.85; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-crt::after, .cell-full .glyph { animation: none; }
+}

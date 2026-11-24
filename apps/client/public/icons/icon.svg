@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1b1a24"/>
+  <!-- chip -->
+  <g fill="#9be36d">
+    <rect x="156" y="196" width="200" height="200" rx="20"/>
+    <g stroke="#9be36d" stroke-width="18" stroke-linecap="round">
+      <path d="M196 196v-36M256 196v-36M316 196v-36M196 396v36M256 396v36M316 396v36M156 236h-36M156 296h-36M156 356h-36M356 236h36M356 296h36M356 356h36"/>
+    </g>
+  </g>
+  <rect x="196" y="236" width="120" height="120" rx="10" fill="#1b1a24"/>
+  <text x="256" y="318" font-family="monospace" font-weight="700" font-size="64" text-anchor="middle" fill="#f2b84b">01</text>
+  <!-- pickaxe -->
+  <g transform="rotate(-35 256 120)">
+    <path d="M150 120 Q256 50 362 120" fill="none" stroke="#c9ced6" stroke-width="26" stroke-linecap="round"/>
+    <rect x="246" y="92" width="20" height="120" rx="8" fill="#a8743c"/>
+  </g>
+</svg>
