@@ -42,6 +42,9 @@ export function digSeconds(dwarfLevel: number, rockLevel: number): number {
 // ── Grid movement ─────────────────────────────────────────────────────────────
 export type Direction = 'up' | 'left' | 'down' | 'right';
 
+/** Seconds of game time for a dwarf to walk one cell. */
+export const WALK_SECONDS = 0.333;
+
 /**
  * The order an idle dwarf checks its neighbors for the next rock to mine.
  * Odd-level dwarves go W, A, S, D (up, left, down, right); even-level dwarves go D, S, A, W.

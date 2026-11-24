@@ -1,11 +1,9 @@
 import { batch } from '@preact/signals-react';
-import { DIG_CURVE, mineOrder, neighbor, strikeDamage } from '@dmd/shared';
+import { DIG_CURVE, mineOrder, neighbor, strikeDamage, WALK_SECONDS } from '@dmd/shared';
 import { dig, produceFor, reachGoal, updateDwarf, walkStep } from './actions.ts';
 import { dwarves, EXIT, isMinable, levelAt, levels, underExit, type Dwarf, type LevelState } from './world.ts';
 
 const TICK_MS = 100;
-/** Seconds per step when a dwarf walks a dragged path. */
-const WALK_SECONDS = 0.15;
 
 /** Dev-only fast-forward for playtesting and balancing: http://localhost:5173/?speed=20 */
 const SPEED =

@@ -140,8 +140,14 @@ describe('moving and mining', () => {
     dwarves.value = [dwarf(1, 1, 9)];
     A.walkTo(1, 1, 0);
     expect(get(1)!.path).toEqual([8, 4]);
-    tick(0.15);
-    tick(0.15);
+    // One cell per 333 ms of game time (docs/DESIGN.md → Walking pace).
+    tick(0.33);
+    expect(get(1)!.pos).toBe(9);
+    tick(0.01); // 0.34 s
+    expect(get(1)!.pos).toBe(8);
+    tick(0.32); // 0.66 s
+    expect(get(1)).toMatchObject({ pos: 8, target: null });
+    tick(0.01); // 0.67 s
     expect(get(1)).toMatchObject({ pos: 4, target: 0 });
   });
 });
