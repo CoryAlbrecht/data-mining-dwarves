@@ -57,6 +57,9 @@ function dwarf(id: number, level: number, pos: number, depth = 1) {
   return { id, level, depth, pos, target: null, path: [], goal: null };
 }
 const get = (id: number) => dwarves.value.find((d) => d.id === id);
+/** A key press on the page, with no modifiers and focus on nothing in particular. */
+const press = (key: string, extra: Partial<Parameters<typeof K.handleKey>[0]> = {}) =>
+  K.handleKey({ key, target: null, ctrlKey: false, metaKey: false, altKey: false, ...extra });
 const run = (seconds: number) => {
   for (let t = 0; t < seconds; t++) tick(1);
 };
@@ -246,8 +249,6 @@ describe('sneakernet', () => {
 });
 
 describe('keyboard drives the Selected dwarf', () => {
-  const press = (key: string, extra: Partial<Parameters<typeof K.handleKey>[0]> = {}) =>
-    K.handleKey({ key, target: null, ctrlKey: false, metaKey: false, altKey: false, ...extra });
 
   beforeEach(() => {
     dwarves.value = [dwarf(1, 1, 8)];
@@ -298,5 +299,30 @@ describe('keyboard drives the Selected dwarf', () => {
     dwarves.value = [dwarf(1, 1, 10)];
     press('e');
     expect(W.bytes.value).toBe(42);
+  });
+});
+
+describe('the Selected dwarf follows merges and Mine changes', () => {
+  it('selects the merged dwarf after a merge', () => {
+    dwarves.value = [dwarf(1, 1, 8), dwarf(2, 1, 9)];
+    W.selectedDwarf.value = 1;
+    press('d');
+    expect(dwarves.value).toEqual([expect.objectContaining({ id: 2, level: 2 })]);
+    expect(W.selectedDwarf.value).toBe(2);
+  });
+
+  it('stays selected going up through the port and back down through the Entry', () => {
+    A.setBlock(levelAt(1)!, 1, empty());
+    levelAt(1)!.exit.value = { buried: false, remaining: 0 };
+    inventory.value = { duplex: 1 };
+    A.installDuplex(1);
+    dwarves.value = [dwarf(1, 1, 1)];
+    W.selectedDwarf.value = 1;
+    press('w');
+    expect(get(1)).toMatchObject({ depth: 2, pos: 9 });
+    expect(W.selectedDwarf.value).toBe(1);
+    press('s');
+    expect(get(1)).toMatchObject({ depth: 1, pos: 1 });
+    expect(W.selectedDwarf.value).toBe(1);
   });
 });
