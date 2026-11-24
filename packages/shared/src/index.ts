@@ -7,3 +7,4 @@ export * from './network.ts';
 export * from './rng.ts';
 export * from './computers.ts';
 export * from './layout.ts';
+export * from './loot.ts';

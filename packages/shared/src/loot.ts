@@ -1,0 +1,50 @@
+/**
+ * What a bit-rock holds when it breaks. A model chip (a Device, fork() or Network technology)
+ * comes as a small stack that grows with the rock's Level; duplex and cron chips come singly.
+ */
+export const LOOT = {
+  /** One chip in the stack for every this many rock Levels, rounded up. */
+  levelsPerChip: 3,
+  /** Chance of one extra chip on top. */
+  bonusChance: 0.2,
+  /** Encrypted bit-rocks hold this many times the usual stack (without the bonus). */
+  encryptedStacks: 3,
+  /**
+   * Share of ordinary bit-rocks holding each kind of loot (adds up to 1). Chips for this Mine's
+   * producing Devices get the biggest chip share, so upgrading them feels reachable in one Mine.
+   */
+  share: {
+    bytes: 0.55,
+    /** Chips for this Mine's producing Devices (CPU, DRAM, storage, VRAM), picked evenly. */
+    device: 0.24,
+    fork: 0.03,
+    /** This Mine's Network technology chips, picked evenly. */
+    network: 0.06,
+    /** Chips for models that aren't in this Mine. */
+    other: 0.09,
+    duplex: 0.015,
+    cron: 0.015,
+  },
+} as const;
+
+export type LootKind = keyof typeof LOOT.share;
+
+/** Which kind of loot a bit-rock holds, from a uniform 0–1 roll. */
+export function lootKind(roll: number): LootKind {
+  let edge = 0;
+  for (const [kind, share] of Object.entries(LOOT.share) as [LootKind, number][]) {
+    edge += share;
+    if (roll < edge) return kind;
+  }
+  return 'cron';
+}
+
+/** Model chips in a bit-rock of `level`. `roll` is a uniform 0–1 draw for the bonus chip. */
+export function chipCount(level: number, roll: number): number {
+  return Math.ceil(level / LOOT.levelsPerChip) + (roll < LOOT.bonusChance ? 1 : 0);
+}
+
+/** Chips in an encrypted bit-rock of `level`. */
+export function encryptedChipCount(level: number): number {
+  return LOOT.encryptedStacks * Math.ceil(level / LOOT.levelsPerChip);
+}

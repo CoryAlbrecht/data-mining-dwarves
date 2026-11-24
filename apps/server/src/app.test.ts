@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { LevelDef } from '@dmd/shared';
+import { CRON_CHIP, DUPLEX_CHIP, type LevelDef } from '@dmd/shared';
 import { app } from './app.ts';
 
 describe('api', () => {
@@ -99,5 +99,33 @@ describe('mine layout', () => {
     expect(one.exit).toMatchObject({ kind: 'port', width: 2 });
     expect((await mine(4)).exit.kind).toBe('usb');
     expect((await mine(5)).exit.width).toBe(3);
+  });
+});
+
+describe('bit-rock loot', () => {
+  const mine = async (depth: number) => (await (await app.request(`/api/levels/${depth}`)).json()) as LevelDef;
+  const chipLoot = (lvl: LevelDef) =>
+    lvl.blocks.flatMap((b) => (b.kind === 'rock' && b.loot.kind === 'chip' ? [b.loot] : []));
+
+  it('holds about 4 chips per producing Device in each Mine of the first two Computers', async () => {
+    let chips = 0;
+    let devices = 0;
+    for (let depth = 1; depth <= 12; depth++) {
+      const lvl = await mine(depth);
+      const producing = new Set(lvl.devices.filter((d) => d.model !== 'fork').map((d) => d.model));
+      chips += chipLoot(lvl).reduce((a, l) => a + (producing.has(l.chip) ? l.count : 0), 0);
+      devices += producing.size;
+    }
+    expect(chips / devices).toBeGreaterThanOrEqual(3.5);
+    expect(chips / devices).toBeLessThanOrEqual(4.5);
+  });
+
+  it('gives duplex and cron chips one at a time', async () => {
+    const specials = [];
+    for (let depth = 1; depth <= 30; depth++) {
+      specials.push(...chipLoot(await mine(depth)).filter((l) => l.chip === DUPLEX_CHIP || l.chip === CRON_CHIP));
+    }
+    expect(specials.length).toBeGreaterThan(0);
+    expect(specials.every((l) => l.count === 1)).toBe(true);
   });
 });

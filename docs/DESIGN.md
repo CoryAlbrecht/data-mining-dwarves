@@ -51,8 +51,13 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   port's position has its own random stream, so retuning never moves it under a saved Mine.
 - **Placement:** rocks are sorted easiest at the bottom to hardest at the top, then each one has a
   50% chance to swap with a rock up to 2 rows away, so the layers aren't perfectly stratified.
+- **Loot odds** for ordinary bit-rocks: 55% bytes, 24% chips for this Mine's producing Devices,
+  3% fork(), 6% this Mine's Network chips, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
+- **Chip stacks:** a model chip comes as a stack of **ceil(rock Level / 3)**, with a 20% chance of
+  one extra. Duplex and cron chips always come one at a time. Over the first two Computers that
+  works out to about 4 chips per producing Device per Mine.
 - **Encrypted bit-rocks** (the treasure chests) come only from the hardest Level and always hold a
-  stack of chips.
+  stack of **3 × ceil(Level / 3)** chips, usually for this Mine's Devices.
 - **Rocks show only a tiny Level number**, and what's inside is a surprise. The glyph wears down
   (▓ → ▒ → ░) as it's dug.
 - **Hardness:** the port has the hardest Level on the curve, and buried Devices have the
@@ -124,7 +129,7 @@ rock keeps its remaining size if the dwarves leave. The constants are in `DIG_CU
   on a rock walks it next to the rock and starts mining.
 - When a rock breaks, the dwarf **starts on the next adjacent rock by itself**. Odd-level dwarves
   check **W, A, S, D** (up, left, down, right) and even-level dwarves check **D, S, A, W**.
-- A broken rock **leaves its loot (bytes or a chip) on the floor**. Dwarves never pick things up on
+- A broken rock **leaves its loot (bytes or a stack of chips) on the floor**. Dwarves never pick things up on
   their own; the player has to move a dwarf onto the item.
 - Moving a dwarf **onto a same-level dwarf merges them** into one dwarf of the next level. A
   different-level dwarf blocks the way.

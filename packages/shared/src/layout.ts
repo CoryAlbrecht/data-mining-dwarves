@@ -4,7 +4,7 @@ import { NETWORK_TECHS } from './network.ts';
  * Version of the Mine generator. Bump it whenever generation changes what a depth produces:
  * players' devices cache Mines forever under a name that includes it.
  */
-export const GENERATOR_VERSION = 3;
+export const GENERATOR_VERSION = 4;
 
 /** Service-worker cache holding this generator's Mines. */
 export const LEVELS_CACHE = `dmd-levels-v${GENERATOR_VERSION}`;

@@ -1,13 +1,16 @@
 import {
+  chipCount,
   CRON_CHIP,
   DEVICE_MODELS,
   deviceFootprint,
   DUPLEX_CHIP,
+  encryptedChipCount,
   FORGE_ID,
   FORK_FOOTPRINT,
   hardwareFor,
   holeChance,
   LAYOUT,
+  lootKind,
   MINE_HEIGHT,
   MINE_WIDTH,
   MONSTERS,
@@ -218,10 +221,11 @@ export function generateLevel(depth: number): LevelDef {
   const hardest = distinct[0] ?? Math.round(median);
   const second = distinct[1] ?? hardest;
 
-  // Chips worth finding here: this Mine's Devices (most often), fork(), and network chips.
+  // Chips worth finding here: this Mine's producing Devices (most often), fork(), and network chips.
   const deviceIds = hardware.map((d) => d.id);
   const tech = startTech(place.computer);
   const netChips = [NETWORK_TECHS[tech]!.id, ...(NETWORK_TECHS[tech + 1] && depth >= 2 ? [NETWORK_TECHS[tech + 1]!.id] : [])];
+  // Encrypted bit-rocks: producing Devices twice as likely as fork() or a network chip.
   const localChips = [...deviceIds, ...deviceIds, FORGE_ID, ...netChips];
   const here = new Set(deviceIds);
   const otherChips = DEVICE_MODELS.filter((m) => {
@@ -229,13 +233,16 @@ export function generateLevel(depth: number): LevelDef {
     return m.kind !== 'forge' && !here.has(m.id) && (!local || m.tier <= local.tier + 4);
   }).map((m) => m.id);
 
-  const rockLoot = (): Loot => {
-    const r = rand();
-    if (r < 0.55) return { kind: 'bytes', amount: Math.round(8 * 1.5 ** (depth - 1) * (0.5 + rand())) };
-    if (r < 0.88) return { kind: 'chip', chip: pick(localChips), count: 1 };
-    if (r < 0.97 && otherChips.length) return { kind: 'chip', chip: pick(otherChips), count: 1 };
-    if (r < 0.985) return { kind: 'chip', chip: DUPLEX_CHIP, count: 1 };
-    return { kind: 'chip', chip: CRON_CHIP, count: 1 };
+  const modelChips = (chip: string, level: number): Loot => ({ kind: 'chip', chip, count: chipCount(level, rand()) });
+  const rockLoot = (level: number): Loot => {
+    const kind = lootKind(rand());
+    if (kind === 'device') return modelChips(pick(deviceIds), level);
+    if (kind === 'fork') return modelChips(FORGE_ID, level);
+    if (kind === 'network') return modelChips(pick(netChips), level);
+    if (kind === 'other' && otherChips.length) return modelChips(pick(otherChips), level);
+    if (kind === 'duplex') return { kind: 'chip', chip: DUPLEX_CHIP, count: 1 };
+    if (kind === 'cron') return { kind: 'chip', chip: CRON_CHIP, count: 1 };
+    return { kind: 'bytes', amount: Math.round(8 * 1.5 ** (depth - 1) * (0.5 + rand())) };
   };
 
   for (const cell of rockCells) {
@@ -243,8 +250,8 @@ export function generateLevel(depth: number): LevelDef {
     const size = rockSize(level);
     const encrypted = level === hardest && distinct.length > 1 && rand() < LAYOUT.encryptedShare;
     blocks[cell] = encrypted
-      ? { kind: 'rock', level, size, remaining: size, encrypted, loot: { kind: 'chip', chip: pick(localChips), count: 3 } }
-      : { kind: 'rock', level, size, remaining: size, loot: rockLoot() };
+      ? { kind: 'rock', level, size, remaining: size, encrypted, loot: { kind: 'chip', chip: pick(localChips), count: encryptedChipCount(level) } }
+      : { kind: 'rock', level, size, remaining: size, loot: rockLoot(level) };
   }
 
   // 7. Hardness: buried Devices use the second-hardest Level; the port the hardest. Bigger
