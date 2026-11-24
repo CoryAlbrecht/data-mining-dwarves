@@ -50,6 +50,7 @@ vi.mock('../api/client.ts', () => ({ api: { level: async (depth: number) => fixt
 const A = await import('./actions.ts');
 const { tick } = await import('./loop.ts');
 const W = await import('./world.ts');
+const K = await import('./keyboard.ts');
 const { dwarves, inventory, levelAt, levels, message, EXIT } = W;
 
 function dwarf(id: number, level: number, pos: number, depth = 1) {
@@ -241,5 +242,61 @@ describe('sneakernet', () => {
     expect(dwarves.value).toEqual([expect.objectContaining({ level: 1, depth: 5, pos: 9 })]);
     expect(W.bytes.value).toBe(500);
     expect(inventory.value.cron).toBe(2);
+  });
+});
+
+describe('keyboard drives the Selected dwarf', () => {
+  const press = (key: string, extra: Partial<Parameters<typeof K.handleKey>[0]> = {}) =>
+    K.handleKey({ key, target: null, ctrlKey: false, metaKey: false, altKey: false, ...extra });
+
+  beforeEach(() => {
+    dwarves.value = [dwarf(1, 1, 8)];
+    W.selectedDwarf.value = 1;
+  });
+
+  it('moves on every key in a row: D, D, A, ← (regression for #2)', () => {
+    const cells = ['d', 'd', 'a', 'ArrowLeft'].map((k) => (press(k), get(1)!.pos));
+    expect(cells).toEqual([9, 10, 9, 8]);
+  });
+
+  it('listens on the page and stops arrow keys from scrolling it', () => {
+    const page = new EventTarget();
+    K.startKeyboard(page);
+    const keydown = (key: string) =>
+      Object.assign(new Event('keydown', { cancelable: true }), { key, ctrlKey: false, metaKey: false, altKey: false });
+    const arrow = keydown('ArrowRight');
+    page.dispatchEvent(arrow);
+    expect(arrow.defaultPrevented).toBe(true);
+    page.dispatchEvent(keydown('ArrowRight'));
+    expect(get(1)!.pos).toBe(10);
+    const escape = keydown('Escape');
+    page.dispatchEvent(escape);
+    expect(W.selectedDwarf.value).toBeNull();
+    expect(escape.defaultPrevented).toBe(false); // the browser keeps its own Escape (popups, fullscreen)
+  });
+
+  it('leaves keys alone while typing in a text field', () => {
+    expect(press('d', { target: { tagName: 'INPUT' } })).toBe(false);
+    expect(get(1)!.pos).toBe(8);
+  });
+
+  it('leaves shortcuts with Ctrl, Cmd or Alt to the browser', () => {
+    expect(press('d', { ctrlKey: true })).toBe(false);
+    expect(get(1)!.pos).toBe(8);
+  });
+
+  it('Escape clears the selection, and then keys do nothing', () => {
+    press('Escape');
+    expect(W.selectedDwarf.value).toBeNull();
+    expect(press('d')).toBe(false);
+    expect(get(1)!.pos).toBe(8);
+  });
+
+  it('E uses a Device next to the Selected dwarf', () => {
+    levelAt(1)!.devices.value = [{ buried: false, remaining: 0 }];
+    levelAt(1)!.buffers.value = [42];
+    dwarves.value = [dwarf(1, 1, 10)];
+    press('e');
+    expect(W.bytes.value).toBe(42);
   });
 });

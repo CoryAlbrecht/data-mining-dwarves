@@ -49,6 +49,11 @@ import {
 
 const DIRS: Direction[] = ['up', 'left', 'down', 'right'];
 
+/** Make a dwarf the Selected dwarf (keyboard commands go to it), or clear the selection with null. */
+export function selectDwarf(id: number | null) {
+  selectedDwarf.value = id;
+}
+
 export function say(text: string) {
   message.value = text;
 }

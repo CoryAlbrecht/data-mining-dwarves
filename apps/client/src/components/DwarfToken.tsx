@@ -1,12 +1,6 @@
-import type { KeyboardEvent, PointerEvent } from 'react';
-import type { Direction } from '@dmd/shared';
-import { moveDwarf, useAdjacentDevice, walkTo } from '../state/actions.ts';
+import type { PointerEvent } from 'react';
+import { selectDwarf, walkTo } from '../state/actions.ts';
 import { drag, EXIT, selectedDwarf, type Dwarf } from '../state/world.ts';
-
-const KEYS: Record<string, Direction> = {
-  w: 'up', a: 'left', s: 'down', d: 'right',
-  ArrowUp: 'up', ArrowLeft: 'left', ArrowDown: 'down', ArrowRight: 'right',
-};
 
 /** Pixels the pointer must travel before a press becomes a drag (otherwise it's a tap/select). */
 const DRAG_THRESHOLD = 6;
@@ -42,24 +36,10 @@ function onPointerUp(e: PointerEvent<HTMLButtonElement>) {
   if (hit) walkTo(p.id, hit.depth, hit.cell);
 }
 
-function onKeyDown(e: KeyboardEvent<HTMLButtonElement>, d: Dwarf) {
-  const dir = KEYS[e.key] ?? KEYS[e.key.toLowerCase()];
-  if (dir) {
-    e.preventDefault(); // arrows would scroll the page
-    moveDwarf(d.id, dir);
-    return;
-  }
-  // E: collect from (or use) a Device next to this dwarf.
-  if (e.key.toLowerCase() === 'e') {
-    e.preventDefault();
-    useAdjacentDevice(d.id);
-  }
-}
-
 /**
  * A dwarf standing on a cell, drawn as a glyph that dances through the Theme's frames while it
- * mines. Tab/Shift+Tab move focus between dwarves; WASD/arrows move the focused one; E uses a
- * Device next to it; mouse or touch drag walks it somewhere. The selected dwarf blinks.
+ * mines. Tapping, clicking or Tabbing to it makes it the Selected dwarf (which blinks); keys
+ * then drive it from anywhere on the page (state/keyboard.ts). Mouse or touch drag walks it.
  */
 export function DwarfToken({ d, frames, f }: { d: Dwarf; frames: string[]; f: number }) {
   const selected = selectedDwarf.value === d.id;
@@ -70,14 +50,7 @@ export function DwarfToken({ d, frames, f }: { d: Dwarf; frames: string[]; f: nu
       type="button"
       className={`dwarf${selected ? ' dwarf-selected' : ''}${drag.value?.id === d.id ? ' dwarf-dragging' : ''}`}
       aria-label={`L${d.level} dwarf${mining ? ', mining' : ''}. Arrow keys or WASD to move, E to use a Device.`}
-      // Keep focus on the dwarf when it moves to another cell (that remounts the button).
-      ref={(el) => {
-        if (el && selected && document.activeElement !== el && document.activeElement?.classList.contains('dwarf')) {
-          el.focus({ preventScroll: true });
-        }
-      }}
-      onFocus={() => (selectedDwarf.value = d.id)}
-      onKeyDown={(e) => onKeyDown(e, d)}
+      onFocus={() => selectDwarf(d.id)}
       onPointerDown={(e) => onPointerDown(e, d)}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -87,6 +60,7 @@ export function DwarfToken({ d, frames, f }: { d: Dwarf; frames: string[]; f: nu
       }}
       onClick={(e) => {
         e.stopPropagation();
+        selectDwarf(d.id); // focus() alone won't reselect after Escape if the button is still focused
         e.currentTarget.focus();
       }}
     >
