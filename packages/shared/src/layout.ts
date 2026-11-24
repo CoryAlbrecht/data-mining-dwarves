@@ -6,8 +6,11 @@ import { NETWORK_TECHS } from './network.ts';
  */
 export const GENERATOR_VERSION = 4;
 
+/** Every generator's Mines cache name starts with this (the first one was just this). */
+export const LEVELS_CACHE_PREFIX = 'dmd-levels';
+
 /** Service-worker cache holding this generator's Mines. */
-export const LEVELS_CACHE = `dmd-levels-v${GENERATOR_VERSION}`;
+export const LEVELS_CACHE = `${LEVELS_CACHE_PREFIX}-v${GENERATOR_VERSION}`;
 
 /** Every Mine is this size. Width stays fixed for thumb-sized cells in portrait. */
 export const MINE_WIDTH = 8;

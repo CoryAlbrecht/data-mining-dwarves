@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { CRON_CHIP, DUPLEX_CHIP, type LevelDef } from '@dmd/shared';
 import { app } from './app.ts';
 
+const mine = async (depth: number) => (await (await app.request(`/api/levels/${depth}`)).json()) as LevelDef;
+
 describe('api', () => {
   it('serves deterministic levels', async () => {
     const a = (await (await app.request('/api/levels/3')).json()) as LevelDef;
@@ -31,7 +33,6 @@ describe('api', () => {
 });
 
 describe('mine layout', () => {
-  const mine = async (depth: number) => (await (await app.request(`/api/levels/${depth}`)).json()) as LevelDef;
 
   it('keeps each port where it is when holes, rocks or loot are retuned, so saved Mines line up', async () => {
     // Recorded when the port got its own random stream (#6). Retuning must not move these.
@@ -103,7 +104,6 @@ describe('mine layout', () => {
 });
 
 describe('bit-rock loot', () => {
-  const mine = async (depth: number) => (await (await app.request(`/api/levels/${depth}`)).json()) as LevelDef;
   const chipLoot = (lvl: LevelDef) =>
     lvl.blocks.flatMap((b) => (b.kind === 'rock' && b.loot.kind === 'chip' ? [b.loot] : []));
 

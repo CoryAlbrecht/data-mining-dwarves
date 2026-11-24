@@ -1,4 +1,5 @@
 import {
+  byteLoot,
   chipCount,
   CRON_CHIP,
   DEVICE_MODELS,
@@ -226,7 +227,7 @@ export function generateLevel(depth: number): LevelDef {
   const tech = startTech(place.computer);
   const netChips = [NETWORK_TECHS[tech]!.id, ...(NETWORK_TECHS[tech + 1] && depth >= 2 ? [NETWORK_TECHS[tech + 1]!.id] : [])];
   // Encrypted bit-rocks: producing Devices twice as likely as fork() or a network chip.
-  const localChips = [...deviceIds, ...deviceIds, FORGE_ID, ...netChips];
+  const encryptedChips = [...deviceIds, ...deviceIds, FORGE_ID, ...netChips];
   const here = new Set(deviceIds);
   const otherChips = DEVICE_MODELS.filter((m) => {
     const local = hardware.find((d) => d.kind === m.kind);
@@ -242,7 +243,7 @@ export function generateLevel(depth: number): LevelDef {
     if (kind === 'other' && otherChips.length) return modelChips(pick(otherChips), level);
     if (kind === 'duplex') return { kind: 'chip', chip: DUPLEX_CHIP, count: 1 };
     if (kind === 'cron') return { kind: 'chip', chip: CRON_CHIP, count: 1 };
-    return { kind: 'bytes', amount: Math.round(8 * 1.5 ** (depth - 1) * (0.5 + rand())) };
+    return { kind: 'bytes', amount: byteLoot(depth, rand()) };
   };
 
   for (const cell of rockCells) {
@@ -250,7 +251,7 @@ export function generateLevel(depth: number): LevelDef {
     const size = rockSize(level);
     const encrypted = level === hardest && distinct.length > 1 && rand() < LAYOUT.encryptedShare;
     blocks[cell] = encrypted
-      ? { kind: 'rock', level, size, remaining: size, encrypted, loot: { kind: 'chip', chip: pick(localChips), count: encryptedChipCount(level) } }
+      ? { kind: 'rock', level, size, remaining: size, encrypted, loot: { kind: 'chip', chip: pick(encryptedChips), count: encryptedChipCount(level) } }
       : { kind: 'rock', level, size, remaining: size, loot: rockLoot(level) };
   }
 

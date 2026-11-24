@@ -90,7 +90,6 @@ export function hardwareFor(depth: number): DeviceModel[] {
   return devices;
 }
 
-/** Rocks start bigger on each new computer, and grow a level every 3 levels within it. */
 /** How the Rock curve's median climbs (GLOSSARY.md: Rock curve). */
 export const ROCK_CURVE = {
   /** Median Level of the very first Mine. */

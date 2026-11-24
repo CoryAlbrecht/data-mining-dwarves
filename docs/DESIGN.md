@@ -52,7 +52,7 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - **Placement:** rocks are sorted easiest at the bottom to hardest at the top, then each one has a
   50% chance to swap with a rock up to 2 rows away, so the layers aren't perfectly stratified.
 - **Loot odds** for ordinary bit-rocks: 55% bytes, 24% chips for this Mine's producing Devices,
-  3% fork(), 6% this Mine's Network chips, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
+  3% fork(), 6% chips for this Mine's Network technologies, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
 - **Chip stacks:** a model chip comes as a stack of **ceil(rock Level / 3)**, with a 20% chance of
   one extra. Duplex and cron chips always come one at a time. Over the first two Computers that
   works out to about 4 chips per producing Device per Mine.

@@ -7,6 +7,8 @@ export const LOOT = {
   levelsPerChip: 3,
   /** Chance of one extra chip on top. */
   bonusChance: 0.2,
+  /** Bytes in a bytes bit-rock: base · growth^(depth−1), times a random 0.5–1.5. */
+  bytes: { base: 8, growth: 1.5 },
   /** Encrypted bit-rocks hold this many times the usual stack (without the bonus). */
   encryptedStacks: 3,
   /**
@@ -18,7 +20,7 @@ export const LOOT = {
     /** Chips for this Mine's producing Devices (CPU, DRAM, storage, VRAM), picked evenly. */
     device: 0.24,
     fork: 0.03,
-    /** This Mine's Network technology chips, picked evenly. */
+    /** Chips for this Mine's Network technologies, picked evenly. */
     network: 0.06,
     /** Chips for models that aren't in this Mine. */
     other: 0.09,
@@ -37,6 +39,11 @@ export function lootKind(roll: number): LootKind {
     if (roll < edge) return kind;
   }
   return 'cron';
+}
+
+/** Bytes in a bytes bit-rock at `depth`. `roll` is a uniform 0–1 draw for the spread. */
+export function byteLoot(depth: number, roll: number): number {
+  return Math.round(LOOT.bytes.base * LOOT.bytes.growth ** (depth - 1) * (0.5 + roll));
 }
 
 /** Model chips in a bit-rock of `level`. `roll` is a uniform 0–1 draw for the bonus chip. */
