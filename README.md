@@ -30,6 +30,12 @@ npm run fonts:unifont  # regenerate the Unifont chunks (needs Python: fonttools 
 
 In dev, add `?speed=20` to the URL to fast-forward the game clock for playtesting.
 
+To playtest on a phone or tablet, connect it to the same network and open the `Network:` URL that
+`npm run dev` prints (e.g. `http://192.168.1.20:5173/`). Only the client is exposed; it proxies
+`/api` to the API server, which stays on localhost. If the page doesn't load, allow port 5173
+through the computer's firewall. The service worker (install as an app, offline play) needs HTTPS,
+so it won't run this way.
+
 ## State management: signals, not useState/useEffect
 
 All game state lives in `@preact/signals-react` signals in `apps/client/src/state/`. The
