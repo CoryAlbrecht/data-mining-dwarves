@@ -326,3 +326,65 @@ describe('the Selected dwarf follows merges and Mine changes', () => {
     expect(W.selectedDwarf.value).toBe(1);
   });
 });
+
+describe('holding a key walks the Selected dwarf', () => {
+  const release = (key: string) => K.handleKeyUp({ key });
+
+  beforeEach(() => {
+    release('d'); // no key left held over from another test
+    dwarves.value = [dwarf(1, 1, 8)];
+    W.selectedDwarf.value = 1;
+  });
+
+  it('steps at once, then one cell per 333 ms of game time, ignoring key auto-repeat', () => {
+    press('d');
+    expect(get(1)!.pos).toBe(9);
+    for (let i = 0; i < 5; i++) press('d', { repeat: true }); // the OS repeats much faster
+    expect(get(1)!.pos).toBe(9);
+    tick(0.33);
+    expect(get(1)!.pos).toBe(9);
+    tick(0.01);
+    expect(get(1)!.pos).toBe(10);
+    tick(0.333);
+    expect(get(1)!.pos).toBe(11);
+  });
+
+  it('ends the walk when it bumps into a rock and starts mining it, even if the key stays down', () => {
+    press('w'); // 8 → 4 (a hole)
+    expect(get(1)!.pos).toBe(4);
+    tick(0.34); // up from 4 is rock 0: mine it instead of moving
+    expect(get(1)).toMatchObject({ pos: 4, target: 0 });
+    run(40); // the rock breaks after 30 s and leaves its loot on the floor
+    expect(levelAt(1)!.blocks.value[0]!.kind).toBe('item');
+    expect(get(1)!.pos).toBe(4); // dwarves never step onto loot by themselves
+  });
+
+  it('stops when the key is released on the page', () => {
+    const page = new EventTarget();
+    K.startKeyboard(page);
+    const key = (type: string, k: string) =>
+      Object.assign(new Event(type), { key: k, ctrlKey: false, metaKey: false, altKey: false, repeat: false });
+    page.dispatchEvent(key('keydown', 'd'));
+    expect(get(1)!.pos).toBe(9);
+    page.dispatchEvent(key('keyup', 'd'));
+    tick(1);
+    expect(get(1)!.pos).toBe(9);
+  });
+
+  it('turns when another direction is pressed while holding, at the same pace', () => {
+    dwarves.value = [dwarf(1, 1, 9)];
+    press('d'); // 9 → 10
+    press('a'); // 10 → 9, now walking left
+    release('d'); // letting go of the old key doesn't stop the new walk
+    tick(0.34);
+    expect(get(1)!.pos).toBe(8);
+  });
+
+  it('stops when the selection is cleared mid-walk', () => {
+    press('d'); // 8 → 9
+    press('Escape');
+    W.selectedDwarf.value = 1; // picked again, key still physically down
+    tick(1);
+    expect(get(1)!.pos).toBe(9);
+  });
+});

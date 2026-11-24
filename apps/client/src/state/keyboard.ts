@@ -3,9 +3,9 @@
  * keyboard focus happens to be. One listener on the page, so moving a dwarf (which remounts its
  * button in another cell) or clicking a panel button can't break the next keystroke.
  */
-import type { Direction } from '@dmd/shared';
+import { WALK_SECONDS, type Direction } from '@dmd/shared';
 import { moveDwarf, selectDwarf, useAdjacentDevice } from './actions.ts';
-import { selectedDwarf } from './world.ts';
+import { dwarves, selectedDwarf } from './world.ts';
 
 const MOVES: Record<string, Direction> = {
   w: 'up', a: 'left', s: 'down', d: 'right',
@@ -19,6 +19,30 @@ export interface KeyPress {
   ctrlKey: boolean;
   metaKey: boolean;
   altKey: boolean;
+  /** True for the keyboard's own auto-repeat while a key is held down. */
+  repeat?: boolean;
+}
+
+/** A direction key being held down: which key, which way, for which dwarf. Input state, not game state. */
+interface HeldKey {
+  key: string;
+  dir: Direction;
+  id: number;
+  /** Game seconds since the dwarf's last step. */
+  sinceStep: number;
+}
+let held: HeldKey | null = null;
+
+/**
+ * Move the dwarf one cell. True if it walked to a new cell; false if it started mining whatever it
+ * bumped into, was blocked, or merged away. Only a real step keeps a held key walking.
+ */
+function walkOneCell(id: number, dir: Direction): boolean {
+  const find = () => dwarves.value.find((d) => d.id === id);
+  const before = find();
+  moveDwarf(id, dir);
+  const after = find();
+  return !!before && !!after && after.target === null && (after.pos !== before.pos || after.depth !== before.depth);
 }
 
 /** Is the key going into something the player types in? Those keep their keys. */
@@ -35,6 +59,7 @@ export function handleKey(e: KeyPress): boolean {
   if (e.ctrlKey || e.metaKey || e.altKey || isTextField(e.target)) return false;
   const key = e.key.toLowerCase();
   if (key === 'escape') {
+    held = null;
     selectDwarf(null);
     return false; // leave the browser's own Escape alone (popups, fullscreen)
   }
@@ -42,7 +67,8 @@ export function handleKey(e: KeyPress): boolean {
   if (id === null) return false;
   const dir = MOVES[key];
   if (dir) {
-    moveDwarf(id, dir);
+    if (e.repeat) return true; // held keys walk at the walking pace (walkHeldKey), not the OS repeat rate
+    held = walkOneCell(id, dir) ? { key, dir, id, sinceStep: 0 } : null;
     return true;
   }
   if (key === 'e') {
@@ -52,9 +78,31 @@ export function handleKey(e: KeyPress): boolean {
   return false;
 }
 
+/** A key was released: stop walking if it was the held direction key. */
+export function handleKeyUp(e: { key: string }) {
+  if (held?.key === e.key.toLowerCase()) held = null;
+}
+
+/** Called by the game loop: while a direction key is held, step once per WALK_SECONDS. */
+export function walkHeldKey(dt: number) {
+  if (!held) return;
+  if (selectedDwarf.value !== held.id) {
+    held = null; // deselected (Escape) or another dwarf picked: stop
+    return;
+  }
+  held.sinceStep += dt;
+  while (held && held.sinceStep >= WALK_SECONDS) {
+    held.sinceStep -= WALK_SECONDS;
+    if (!walkOneCell(held.id, held.dir)) held = null;
+  }
+}
+
 /** Listen for game keys on the whole page. Call once at startup. */
 export function startKeyboard(page: EventTarget = document) {
   page.addEventListener('keydown', (e) => {
     if (handleKey(e as KeyboardEvent)) e.preventDefault();
   });
+  page.addEventListener('keyup', (e) => handleKeyUp(e as KeyboardEvent));
+  // Switching windows mid-hold means the key-up never arrives here: stop walking.
+  globalThis.addEventListener?.('blur', () => (held = null));
 }

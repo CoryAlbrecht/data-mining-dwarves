@@ -1,6 +1,7 @@
 import { batch } from '@preact/signals-react';
 import { DIG_CURVE, mineOrder, neighbor, strikeDamage, WALK_SECONDS } from '@dmd/shared';
 import { dig, produceFor, reachGoal, updateDwarf, walkStep } from './actions.ts';
+import { walkHeldKey } from './keyboard.ts';
 import { dwarves, EXIT, isMinable, levelAt, levels, underExit, type Dwarf, type LevelState } from './world.ts';
 
 const TICK_MS = 100;
@@ -35,7 +36,8 @@ export function tick(dt: number) {
   batch(() => {
     produceFor(dt);
 
-    // 1. Walk dragged paths, one cell per WALK_SECONDS.
+    // 1. Walk: a held direction key, then dragged paths, one cell per WALK_SECONDS.
+    walkHeldKey(dt);
     for (const d of dwarves.value.filter((x) => x.path.length > 0)) {
       let t = (walkClock.get(d.id) ?? 0) + dt;
       while (t >= WALK_SECONDS) {
