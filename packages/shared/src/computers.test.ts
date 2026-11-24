@@ -76,10 +76,11 @@ describe('layout rules', () => {
     ]);
   });
 
-  it('starts the bottom row empty, then 50% down to 10% holes', () => {
+  it('starts the bottom row empty, then 60% down to 12% holes', () => {
     expect(holeChance(0)).toBe(1);
-    expect(holeChance(1)).toBe(0.5);
-    expect(holeChance(11)).toBeCloseTo(0.1);
+    expect(holeChance(1)).toBeCloseTo(0.6);
+    expect(holeChance(6)).toBeCloseTo(0.36); // halfway up the straight line: (0.6 + 0.12) / 2
+    expect(holeChance(11)).toBeCloseTo(0.12);
   });
 
   it('widens the port with each computer, up to 4', () => {

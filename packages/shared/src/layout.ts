@@ -4,7 +4,7 @@ import { NETWORK_TECHS } from './network.ts';
  * Version of the Mine generator. Bump it whenever generation changes what a depth produces:
  * players' devices cache Mines forever under a name that includes it.
  */
-export const GENERATOR_VERSION = 2;
+export const GENERATOR_VERSION = 3;
 
 /** Service-worker cache holding this generator's Mines. */
 export const LEVELS_CACHE = `dmd-levels-v${GENERATOR_VERSION}`;
@@ -15,9 +15,9 @@ export const MINE_HEIGHT = 12;
 
 export const LAYOUT = {
   /** Share of starting holes in the 2nd row from the bottom (the bottom row is always empty)… */
-  holesLow: 0.5,
+  holesLow: 0.6,
   /** …falling in a straight line to this share in the top row. */
-  holesTop: 0.1,
+  holesTop: 0.12,
   /** Chance each bit-rock swaps with another, so Levels aren't perfectly stratified… */
   jitterChance: 0.5,
   /** …with a rock at most this many rows away. */
