@@ -38,8 +38,17 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   older Mines.
 - **Holes:** the bottom row and the cells around fork() start empty. From row 2 up, 50% of cells
   start as holes, falling steadily to 10% in the top row. Holes are just empty cells.
-- **Bit-rock Levels** follow a bell curve (binomial, about ±1 Level) centred on the Mine's base
-  Level. Holes are carved first, and the curve shares Levels out among the rocks that remain.
+- **Bit-rock Levels** follow the **Rock curve**: a bell curve (binomial, about ±1 Level) around
+  the Mine's median Level. Holes are carved first, and the curve shares Levels out among the rocks
+  that remain.
+- **The median climbs half a Level every Mine**, smoothly: a half-Level median blends the curves
+  either side, so each Mine is a little harder than the last. After Sneakernet the next Computer
+  starts **a quarter of the way up** the previous Computer's first-to-last range, since the player
+  is rebuilding from one dwarf. With 4, 8, 16… Mines per Computer the medians run 1 → 2.5, then
+  1.4 → 4.9, then 2.3 → 9.8.
+- **Generator version:** Mines are cached forever on the player's device, under a name that
+  includes the generator's version. Any change to what a depth generates bumps the version. The
+  port's position has its own random stream, so retuning never moves it under a saved Mine.
 - **Placement:** rocks are sorted easiest at the bottom to hardest at the top, then each one has a
   50% chance to swap with a rock up to 2 rows away, so the layers aren't perfectly stratified.
 - **Encrypted bit-rocks** (the treasure chests) come only from the hardest Level and always hold a

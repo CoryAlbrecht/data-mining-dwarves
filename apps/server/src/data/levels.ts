@@ -1,5 +1,4 @@
 import {
-  baseRockLevel,
   CRON_CHIP,
   DEVICE_MODELS,
   deviceFootprint,
@@ -17,6 +16,7 @@ import {
   placeOf,
   portWidth,
   rockLevelCounts,
+  rockMedian,
   rockSize,
   startTech,
   type Block,
@@ -82,6 +82,14 @@ function themeFor(computer: number, index: number): LevelTheme {
 const idx = (x: number, y: number) => y * W + x;
 
 /**
+ * Where the port sits in the top Wall. It has its own random stream, so retuning holes, rocks or
+ * loot never moves the port under a saved Mine.
+ */
+function portX(seed: number, width: number): number {
+  return Math.floor(mulberry32(seed ^ 0x9e3779b9)() * (W - width + 1));
+}
+
+/**
  * Lay a Device's footprint into the grid. The collect and upgrade spots go in the column facing
  * the middle of the Mine (collect lowest, upgrade highest); the rest are label cells.
  */
@@ -115,7 +123,7 @@ export function generateLevel(depth: number): LevelDef {
   };
 
   const place = placeOf(depth);
-  const base = baseRockLevel(depth);
+  const median = rockMedian(depth);
   const hardware = hardwareFor(depth);
   const blocks: (Block | null)[] = Array(W * H).fill(null);
   const devices: DeviceDef[] = [];
@@ -193,7 +201,7 @@ export function generateLevel(depth: number): LevelDef {
     const row = shuffle(Array.from({ length: W }, (_, x) => idx(x, y)).filter((i) => !blocks[i]));
     rockCells.push(...row);
   }
-  const levels = rockLevelCounts(rockCells.length, base).flatMap(([l, c]) => Array<number>(c).fill(l));
+  const levels = rockLevelCounts(rockCells.length, median).flatMap(([l, c]) => Array<number>(c).fill(l));
   const levelAt = new Map(rockCells.map((cell, k) => [cell, levels[k]!]));
   for (const cell of rockCells) {
     if (rand() >= LAYOUT.jitterChance) continue;
@@ -207,7 +215,7 @@ export function generateLevel(depth: number): LevelDef {
   }
 
   const distinct = [...new Set(levels)].sort((a, b) => b - a);
-  const hardest = distinct[0] ?? base;
+  const hardest = distinct[0] ?? Math.round(median);
   const second = distinct[1] ?? hardest;
 
   // Chips worth finding here: this Mine's Devices (most often), fork(), and network chips.
@@ -249,7 +257,7 @@ export function generateLevel(depth: number): LevelDef {
   const pw = portWidth(place.computer);
   const exit = {
     kind: place.last ? ('usb' as const) : ('port' as const),
-    x: Math.floor(rand() * (W - pw + 1)),
+    x: portX(seed, pw),
     width: pw,
     level: hardest,
     size: rockSize(hardest) * pw,

@@ -33,6 +33,13 @@ describe('api', () => {
 describe('mine layout', () => {
   const mine = async (depth: number) => (await (await app.request(`/api/levels/${depth}`)).json()) as LevelDef;
 
+  it('keeps each port where it is when holes, rocks or loot are retuned, so saved Mines line up', async () => {
+    // Recorded when the port got its own random stream (#6). Retuning must not move these.
+    const before = [1,2,5,6,5,5,0,5,0,5,0,1,3,2,1,3,2,1,4,1,1,3,1,2,1,1,0,0,0,4,3,2,4,3,4,0,0,2,0,4];
+    const now = await Promise.all(before.map(async (_, k) => (await mine(k + 1)).exit.x));
+    expect(now).toEqual(before);
+  });
+
   it('puts producing Devices on the sides, fork() uncovered in a bottom corner, and keeps rows clear', async () => {
     for (const depth of [1, 2, 4, 5, 13]) {
       const lvl = await mine(depth);

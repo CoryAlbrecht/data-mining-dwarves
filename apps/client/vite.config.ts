@@ -2,6 +2,7 @@ import babel from '@rolldown/plugin-babel';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { LEVELS_CACHE } from '@dmd/shared';
 
 export default defineConfig({
   // The signals Babel transform injects `@preact/signals-react/runtime` imports that the dep scanner
@@ -41,10 +42,11 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            // Levels are deterministic per depth: cache forever so play works offline.
+            // Mines are deterministic per depth and generator version: cache forever so play works
+            // offline. The name changes with the version (old ones are dropped by levelCache.ts).
             urlPattern: ({ url }) => url.pathname.startsWith('/api/levels/'),
             handler: 'CacheFirst',
-            options: { cacheName: 'dmd-levels', expiration: { maxEntries: 200 } },
+            options: { cacheName: LEVELS_CACHE, expiration: { maxEntries: 200 } },
           },
           {
             // Fonts (incl. the Unifont chunks) download on demand; keep whatever was used.

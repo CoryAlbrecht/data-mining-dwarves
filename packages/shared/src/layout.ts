@@ -1,5 +1,14 @@
 import { NETWORK_TECHS } from './network.ts';
 
+/**
+ * Version of the Mine generator. Bump it whenever generation changes what a depth produces:
+ * players' devices cache Mines forever under a name that includes it.
+ */
+export const GENERATOR_VERSION = 2;
+
+/** Service-worker cache holding this generator's Mines. */
+export const LEVELS_CACHE = `dmd-levels-v${GENERATOR_VERSION}`;
+
 /** Every Mine is this size. Width stays fixed for thumb-sized cells in portrait. */
 export const MINE_WIDTH = 8;
 export const MINE_HEIGHT = 12;
@@ -46,20 +55,25 @@ export function holeChance(rowFromBottom: number): number {
   return LAYOUT.holesLow + (LAYOUT.holesTop - LAYOUT.holesLow) * t;
 }
 
-/** Binomial weights for Levels base−2 … base+2: a discrete bell curve, σ = 1. */
+/** Binomial weights for Levels median−2 … median+2: a discrete bell curve, σ = 1. */
 const BELL = [1, 4, 6, 4, 1];
 
 /**
- * How many of `n` bit-rocks get each Level, following a bell curve centred on `base`.
- * Levels below 1 fold into Level 1. Rounded with largest remainders so the counts add up to n.
- * Returns [level, count] pairs, easiest first, skipping zero counts.
+ * How many of `n` bit-rocks get each Level, following a bell curve centred on `median` (the Rock
+ * curve). A fractional median blends the curves of the Levels either side of it, so the curve
+ * shifts a little every Mine. Levels below 1 fold into Level 1. Rounded with largest remainders so
+ * the counts add up to n. Returns [level, count] pairs, easiest first, skipping zero counts.
  */
-export function rockLevelCounts(n: number, base: number): [level: number, count: number][] {
+export function rockLevelCounts(n: number, median: number): [level: number, count: number][] {
+  const low = Math.floor(median);
+  const share = median - low;
   const weights = new Map<number, number>();
-  BELL.forEach((w, k) => {
-    const level = Math.max(1, base - 2 + k);
-    weights.set(level, (weights.get(level) ?? 0) + w / 16);
-  });
+  for (const [centre, part] of [[low, 1 - share], [low + 1, share]] as const) {
+    BELL.forEach((w, k) => {
+      const level = Math.max(1, centre - 2 + k);
+      weights.set(level, (weights.get(level) ?? 0) + (part * w) / 16);
+    });
+  }
   const exact = [...weights].map(([level, w]) => ({ level, x: w * n }));
   const counts = exact.map((e) => ({ level: e.level, count: Math.floor(e.x), rem: e.x - Math.floor(e.x) }));
   let left = n - counts.reduce((a, c) => a + c.count, 0);

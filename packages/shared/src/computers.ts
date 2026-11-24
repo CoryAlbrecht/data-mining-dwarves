@@ -91,9 +91,26 @@ export function hardwareFor(depth: number): DeviceModel[] {
 }
 
 /** Rocks start bigger on each new computer, and grow a level every 3 levels within it. */
-export function baseRockLevel(depth: number): number {
+/** How the Rock curve's median climbs (GLOSSARY.md: Rock curve). */
+export const ROCK_CURVE = {
+  /** Median Level of the very first Mine. */
+  firstMedian: 1,
+  /** Levels the median rises with each Mine of a Computer. */
+  perMine: 0.5,
+  /** A new Computer starts this far up the previous Computer's first-to-last range. */
+  handover: 0.25,
+} as const;
+
+/**
+ * Median bit-rock Level of the Mine at `depth`. It climbs smoothly through a Computer; after
+ * Sneakernet the next Computer starts a quarter of the way up the last one, since the player is
+ * rebuilding from one dwarf.
+ */
+export function rockMedian(depth: number): number {
   const { computer, index } = placeOf(depth);
-  return 1 + 2 * computer + Math.floor(index / 3);
+  let start = ROCK_CURVE.firstMedian;
+  for (let c = 0; c < computer; c++) start += (computerLength(c) - 1) * ROCK_CURVE.perMine * ROCK_CURVE.handover;
+  return start + index * ROCK_CURVE.perMine;
 }
 
 export type { ProducingKind };

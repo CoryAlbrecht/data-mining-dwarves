@@ -29,6 +29,10 @@ _Avoid_: Style, level type
 A cell of solid data that dwarves dig away. It has a Level and a size in bytes, and holds loot.
 _Avoid_: Rock (fine in conversation), block, tile
 
+**Rock curve**:
+The spread of bit-rock Levels in a Mine: a bell curve around the Mine's median Level. The median climbs from one Mine to the next.
+_Avoid_: Base Level (a Mine has no Level)
+
 **Encrypted bit-rock**:
 A bit-rock from the Mine's hardest Level that always holds a stack of chips. It's this game's treasure chest.
 _Avoid_: Chest
@@ -42,7 +46,7 @@ An empty cell. Some Mines start with holes, and digging out a bit-rock leaves on
 _Avoid_: Gap, cave
 
 **Item**:
-Loot (bytes or a chip) left lying in a cell after its bit-rock breaks, waiting for a dwarf to step on it.
+Loot (bytes, or one or more of a chip) left lying in a cell after its bit-rock breaks, waiting for a dwarf to step on it.
 _Avoid_: Drop, pickup
 
 **Entry**:
