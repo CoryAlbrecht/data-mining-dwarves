@@ -18,8 +18,7 @@ Edit the "Label in our tracker" column to match whatever vocabulary you actually
 
 On a PR the two ready labels say whose move it is (lifecycle in `workflow.md`):
 
-- `ready-for-agent`: an agent acts next. With commits since the last verdict (or no verdict yet),
-  the next session reviews it; with `Verdict: changes requested` as the latest activity, the next
-  session fixes it.
+- `ready-for-agent`: an agent acts next, reviewing or fixing it (`workflow.md`, PR lifecycle
+  step 5).
 - `ready-for-human`: a review asked for changes or hit a rebase conflict. Agents leave the PR
   alone until the human answers and relabels it `ready-for-agent`.

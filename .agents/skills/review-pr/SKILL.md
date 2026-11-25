@@ -26,12 +26,9 @@ With no assignee, claim it (`gh pr edit <n> --add-assignee @me`) as your first w
 
 ## 2. Pick the role
 
-The **last verdict** is the latest PR comment whose first line is exactly `Verdict: approve` or
-`Verdict: changes requested`. Compare its `createdAt` with the newest commit's `committedDate`:
-
-- No verdict yet, or a commit newer than the last verdict → **review** (step 3).
-- Last verdict `Verdict: changes requested` and no commit after it → **fix** (step 5).
-- Last verdict `Verdict: approve` and no commit after it: a merge was cut short → **review**.
+Choose **review** (step 3) or **fix** (step 5) by the rule in PR lifecycle step 5 of
+`docs/agents/workflow.md`. "After the last verdict" means a commit whose `committedDate` is newer
+than the verdict comment's `createdAt`.
 
 ## 3. Review
 
@@ -39,8 +36,8 @@ The **last verdict** is the latest PR comment whose first line is exactly `Verdi
 2. Run `npm run typecheck && npm test && npm run build` (plus CI once it exists). Record each
    result.
 3. Call the Skill tool with `code-review`. Fixed point: `origin/main`. Spec source: the issues
-   in `closingIssuesReferences`; the Acceptance axis checks every criterion of each. The
-   reviewer reports findings and leaves the code as it is: fixing is a later session's role.
+   in `closingIssuesReferences`; the Acceptance axis checks every criterion of each. Report the
+   findings and leave the code as it is: fixing is a later session's role.
 4. The **verdict** is `approve` when every check passed and all three axes approve; anything
    else is `changes requested`.
 5. An `approve` verdict is made merge-ready before it is posted. `git fetch origin main`; if
@@ -63,12 +60,12 @@ The **last verdict** is the latest PR comment whose first line is exactly `Verdi
 1. `gh pr merge <n> --squash` (the squash commit takes the PR title).
 2. Delete the remote branch if GitHub's auto-delete left it: when
    `git ls-remote --exit-code --heads origin <branch>` finds it, `git push origin --delete <branch>`.
-3. Leave the worktree (see **Leaving the worktree**).
+3. Leave the worktree (**Leaving a worktree** in `docs/agents/workflow.md`).
 4. In the main checkout (the first path in `git worktree list`), run `git pull --ff-only`: the
    only git write a session makes there.
 
 **Changes requested** (a failed check, a rebase conflict or review findings): hand the PR to the
-human, leave the worktree, and stop.
+human, leave the worktree (as above), and stop.
 
 ```sh
 gh pr edit <n> --add-label ready-for-human --remove-label ready-for-agent --remove-assignee @me
@@ -83,18 +80,10 @@ gh pr edit <n> --add-label ready-for-human --remove-label ready-for-agent --remo
 3. Make the changes and commit with Conventional Commit subjects (`docs/agents/workflow.md`).
    The pre-commit hook runs typecheck, test and build.
 4. `git push`, then post a PR comment listing what changed for each finding.
-5. Hand the PR to the next reviewer, leave the worktree, and stop:
+5. Hand the PR to the next reviewer, leave the worktree (as above), and stop:
 
    ```sh
    gh pr edit <n> --add-label ready-for-agent --remove-label ready-for-human --remove-assignee @me
    ```
 
    This session has now pushed to the PR, so its next review comes from another session.
-
-## Leaving the worktree
-
-Check `git status --short` is empty, then `ExitWorktree` with `action: "remove"`; it deletes the
-worktree and its local branch. When it refuses only because the branch's commits are not on the
-original branch, those commits are safe on GitHub (merged or pushed): call it again with
-`discard_changes: true`. If `git branch --list <branch>` still shows the local branch afterwards,
-`git branch -D <branch>`.

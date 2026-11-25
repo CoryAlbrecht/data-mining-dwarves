@@ -33,7 +33,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
    - merges the integration branch tip into its own branch before reporting done;
    - keeps its branch local, leaving pushing, PRs and issue state to you.
 
-5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent** working in the integration worktree. Right after the merge, delete the sub-branch (`git branch -D feat/<spec>-<slug>--<sub>`) and remove that implementer's worktree (`git worktree remove <path>`).
+5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent** working in the integration worktree. Right after the merge, remove that implementer's worktree (`git worktree remove <path>`) and delete the sub-branch (`git branch -D feat/<spec>-<slug>--<sub>`). `ExitWorktree` can't do this: it removes only the calling session's own worktree.
 
 6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets. This allows for maximum concurrency.
 
@@ -41,6 +41,6 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 8. Open the PR from the integration worktree: push with `git push -u origin HEAD`, write the body with the Skill tool `pr` (one `Closes #n` line for the spec and one for every ticket), open it with `gh pr create` titled in Conventional Commits form, e.g. `feat: agent workflow (#37)`, then `gh pr edit <n> --add-label ready-for-agent`.
 
-9. Clean up every worktree. `git worktree list` shows no implementer worktree and `git branch --list 'feat/<spec>-<slug>--*'` is empty; remove any left over. Then call `ExitWorktree` with `action: "keep"`, and run `git worktree remove <integration worktree path>` and `git branch -D feat/<spec>-<slug>`: the branch lives on at `origin`.
+9. Clean up every worktree. `git worktree list` shows no implementer worktree and `git branch --list 'feat/<spec>-<slug>--*'` is empty; remove any left over as in step 5. Then leave the integration worktree as **Leaving a worktree** in `docs/agents/workflow.md` says: the branch lives on at `origin`.
 
 10. Report the PR link and stop. A different session reviews and merges it (`/review-pr`); this session's part ends at the PR.

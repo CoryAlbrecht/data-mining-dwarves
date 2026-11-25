@@ -23,7 +23,9 @@ beforeAll(() => {
   git(main, 'init', '-q', '-b', 'main');
   git(main, 'config', 'user.email', 't@example.com');
   git(main, 'config', 'user.name', 't');
-  writeFileSync(join(main, '.gitignore'), 'ignored/\n.claude/worktrees/\n');
+  // .claude/worktrees/ stays tracked-visible here: a linked worktree must be editable through the
+  // toplevel check alone, not because the fixture happens to ignore it.
+  writeFileSync(join(main, '.gitignore'), 'ignored/\n');
   writeFileSync(join(main, 'README.md'), 'hi\n');
   git(main, 'add', '.');
   git(main, 'commit', '-q', '-m', 'init');
@@ -52,6 +54,13 @@ describe('editing files in the main checkout', () => {
   it('allows edits inside a linked worktree, even one nested under the main checkout', () => {
     expect(editBlocked(join(linked, 'README.md'), main)).toBe(false);
     expect(editBlocked(join(linked, 'src/new.ts'), linked)).toBe(false);
+  });
+});
+
+describe('agent worktrees in this repo', () => {
+  it('are git-ignored, so agent runs leave the main checkout clean', () => {
+    const repo = join(import.meta.dirname, '..');
+    expect(() => git(repo, 'check-ignore', '-q', '.claude/worktrees/agent-x/README.md')).not.toThrow();
   });
 });
 

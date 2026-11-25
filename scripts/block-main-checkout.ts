@@ -47,11 +47,11 @@ function mainCheckout(dir: string): string | null {
 
 /** True when writing `path` would change a file in the main checkout of the repo at `projectDir`. */
 export function editBlocked(path: string, projectDir: string): boolean {
-  const main = mainCheckout(projectDir);
+  const checkout = mainCheckout(projectDir);
   const file = resolve(path);
   const dir = existingDir(file);
-  if (!main || git(dir, 'rev-parse', '--show-toplevel') !== main) return false;
-  return git(main, 'check-ignore', '-q', file) === null; // exits 1 when not ignored
+  if (!checkout || git(dir, 'rev-parse', '--show-toplevel') !== checkout) return false;
+  return git(checkout, 'check-ignore', '-q', file) === null; // exits 1 when not ignored
 }
 
 /** The git subcommands that write to the branch they act on. */
@@ -60,7 +60,7 @@ const WRITES = new Set(['commit', 'push', 'merge', 'rebase', 'reset']);
 const GLOBAL_VALUE_OPTIONS = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--config-env', '--super-prefix']);
 
 /** A git command's directory after its `-C` options, its subcommand and that subcommand's arguments. */
-function readGit(args: string[], dir: string): { dir: string; sub?: string; rest: string[] } {
+function parseGitCommand(args: string[], dir: string): { dir: string; sub?: string; rest: string[] } {
   let k = 0;
   for (; k < args.length && args[k]!.startsWith('-'); k++) {
     if (args[k] === '-C') dir = resolve(dir, args[k + 1] ?? '.');
@@ -97,7 +97,7 @@ function pushesToMain(args: string[]): boolean {
 export function gitBlocked(command: string, cwd: string): boolean {
   for (const { words, dir: here } of simpleCommands(command, cwd)) {
     if (words[0] !== 'git') continue;
-    const { dir, sub, rest } = readGit(words.slice(1), here);
+    const { dir, sub, rest } = parseGitCommand(words.slice(1), here);
     if (!sub || !WRITES.has(sub)) continue;
     if (branchIn(dir) === 'main' || (sub === 'push' && pushesToMain(rest))) return true;
   }
