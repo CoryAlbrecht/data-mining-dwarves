@@ -48,7 +48,7 @@ function fixture(depth = 1): LevelDef {
   };
 }
 
-const ctx = (over: Partial<ViewContext> = {}): ViewContext => ({ dwarves: [], deviceLevels: {}, dialog: null, frame: 0, ...over });
+const ctx = (over: Partial<ViewContext> = {}): ViewContext => ({ dwarves: [], deviceLevels: {}, frame: 0, ...over });
 
 function dwarf(id: number, pos: number, target: number | null = null): Dwarf {
   return { id, level: 1, depth: 1, pos, target, path: [], goal: null };
@@ -176,12 +176,9 @@ describe('cellView: Devices', () => {
     expect(cellView(lvl, 7, ctx())).toMatchObject({ glyph: '⇧', title: 'Upgrade fork() (Level 1)' });
   });
 
-  it('highlights every cell of the Device whose dialog is open', () => {
+  it('never highlights a Device: the view takes no open dialog', () => {
     const lvl = uncovered();
-    const open = ctx({ dialog: { kind: 'device', depth: 1, device: 0 } });
-    expect(cellView(lvl, 2, open).classes).toContain('cell-selected');
-    expect(cellView(lvl, 6, open).classes).toContain('cell-selected');
-    expect(cellView(lvl, 6, ctx({ dialog: { kind: 'device', depth: 2, device: 0 } })).classes).not.toContain('cell-selected');
+    for (const i of [2, 3, 6, 7]) expect(cellView(lvl, i, ctx()).classes.filter((c) => c.includes('selected'))).toEqual([]);
   });
 });
 
@@ -205,9 +202,9 @@ describe('portView', () => {
     expect(portView(lvl, 1, ctx()).title).toBe('USB port: walk a dwarf under it to sneakernet');
   });
 
-  it('highlights the port while its dialog is open', () => {
+  it('never blinks the port: the view takes no open dialog', () => {
     const lvl = makeLevelState(fixture());
-    expect(portView(lvl, 1, ctx({ dialog: { kind: 'port', depth: 1 } })).classes).toContain('wall-selected');
-    expect(portView(lvl, 1, ctx({ dialog: { kind: 'port', depth: 2 } })).classes).not.toContain('wall-selected');
+    lvl.exit.value = { buried: false, remaining: 0 };
+    expect(portView(lvl, 1, ctx()).classes).toEqual(['wall', 'wall-port', 'wall-port-open']);
   });
 });
