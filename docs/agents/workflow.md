@@ -33,7 +33,8 @@ different session reviews and merges. Why agents merge their own PRs:
 ## PR lifecycle
 
 The label on a PR says whose move it is (see `triage-labels.md`). A session has one role per PR:
-the session that opened a PR or pushed to it never reviews it.
+the session that opened a PR or pushed to it never reviews it. A session that hands a PR on by
+relabelling it also drops its claim (`--remove-assignee @me`), so the next session can take it.
 
 1. **Author**: run `/code-review` on the branch as a self-check, push, open the PR with
    `Closes #n` in the body (one line per closed issue), and label it `ready-for-agent`. The
