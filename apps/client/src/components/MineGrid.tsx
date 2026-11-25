@@ -2,7 +2,7 @@ import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { cellView, portView, type CellView, type ViewContext } from '../game/cellView.ts';
 import { tapCell, tapExit } from '../state/actions.ts';
 import { frame } from '../state/clock.ts';
-import { deviceLevels, dialogSubject, dwarves, type LevelState } from '../state/world.ts';
+import { deviceLevels, dwarves, type LevelState } from '../state/world.ts';
 import { DwarfToken } from './DwarfToken.tsx';
 
 function Wall({ glyph, className = '', ...rest }: { glyph: string } & HTMLAttributes<HTMLDivElement>) {
@@ -18,7 +18,7 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
   const { def } = lvl;
   const { width, height, depth } = def;
   const g = def.theme.glyphs;
-  const ctx: ViewContext = { dwarves: dwarves.value, deviceLevels: deviceLevels.value, dialog: dialogSubject.value, frame: frame.value };
+  const ctx: ViewContext = { dwarves: dwarves.value, deviceLevels: deviceLevels.value, frame: frame.value };
   const inPort = (x: number) => x >= def.exit.x && x < def.exit.x + def.exit.width;
 
   const cells: ReactNode[] = [];

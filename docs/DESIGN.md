@@ -93,7 +93,8 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   It's modal: the Mine is dimmed and can't be tapped, but the game keeps running. Only one is open
   at a time. It stays open after an action and updates live. Escape, ✕ or tapping the dimmed
   backdrop closes it. While it's open the game keys rest, and Escape closes only the dialog. It
-  wears the Theme of the Mine it came from. The Entry has no dialog.
+  wears the Theme of the Mine it came from. The Entry has no dialog. Neither the Device nor the
+  port is highlighted while its dialog is open: there's nothing more to do with it once tapped.
 - A Device with no cron job slowly cycles its collect glyph when it's **completely full**.
 
 ## Look
@@ -102,7 +103,7 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - On the green CRT, **everything inside the Mine is phosphor green**, with only brightness varying.
 - **No emoji** for now; any other character in the Basic Multilingual Plane is fine.
 - Dwarves **dance** through the Theme's glyph frames while mining. The **selected dwarf blinks**
-  like a cursor.
+  like a cursor; it's the only thing in a Mine shown as selected.
 
 ## Rocks and digging
 

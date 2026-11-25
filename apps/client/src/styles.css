@@ -107,14 +107,12 @@ button { font: inherit; color: inherit; }
 }
 .wall { color: var(--ink-dim); }
 .wall-port, .wall-entry { color: var(--ink); cursor: pointer; }
-.wall-selected { animation: blink 1s steps(2) infinite; }
 
 .cell { cursor: pointer; color: var(--ink-dim); }
 .cell-lit { color: var(--ink); }
 .cell-item .glyph { color: var(--gold); }
 .cell-hardware { color: var(--ink); background: color-mix(in srgb, var(--ink) 10%, transparent); }
 .cell-label .glyph { font-size: 34cqh; letter-spacing: -0.02em; white-space: nowrap; }
-.cell-selected { background: color-mix(in srgb, var(--ink) 25%, transparent); }
 .cell-full .glyph { animation: pulse 1.4s ease-in-out infinite; }
 
 /* Dig bar: along the top edge (clear of the tiny number), shrinking to the left as the bytes run down. */
