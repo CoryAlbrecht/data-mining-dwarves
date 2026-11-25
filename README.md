@@ -28,7 +28,9 @@ npm run build      # typecheck everything, then build the client PWA into apps/c
 npm run fonts:unifont  # regenerate the Unifont chunks (needs Python: fonttools + brotli)
 ```
 
-In dev, add `?speed=20` to the URL to fast-forward the game clock for playtesting.
+In dev, add `?speed=20` to the URL to fast-forward the game clock for playtesting. Add `?reset`
+to wipe this browser's save, caches and service worker and start over as a first-time visitor
+(the page reloads without the flag; other flags like `?speed` are kept).
 
 To playtest on a phone or tablet, connect it to the same network and open the `Network:` URL that
 `npm run dev` prints (e.g. `http://192.168.1.20:5173/`). Only the client is exposed; it proxies
