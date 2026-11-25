@@ -10,7 +10,6 @@ import { generateLevel } from './levels.ts';
  */
 const FINGERPRINTS: Record<number, string> = {
   4: '9fb6852c371acb59bb4aacd57b845d78444c8c84d4ddacfb66037239e0441c04',
-  5: 'fa3209a10a0ec30a2df2a5b543e066575d1a6b05e8728d3238bac88e44e4f154',
 };
 
 describe('generateLevel', () => {

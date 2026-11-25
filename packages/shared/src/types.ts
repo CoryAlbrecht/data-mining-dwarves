@@ -75,8 +75,9 @@ export interface LevelGlyphs {
   gapR: string;
   portBuried: string;
   portOpen: string;
-  /** Device spots: collect, fork()'s spawn, upgrade. */
+  /** Device spots: collect, its slow "I'm full" cycle, fork()'s spawn, upgrade. */
   collect: string;
+  collectFull: string[];
   spawn: string;
   upgrade: string;
 }

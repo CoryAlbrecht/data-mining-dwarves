@@ -294,7 +294,7 @@ portSeed  = seed XOR 0x9E3779B9
 ```
 
 The port has its own stream, so retuning the generator never moves it. Any change to what a depth
-generates must bump `GENERATOR_VERSION` (now 5), because the service worker caches Mines forever.
+generates must bump `GENERATOR_VERSION` (now 4), because the service worker caches Mines forever.
 A fingerprint test (`apps/server/src/data/levels.test.ts`) over depths 1–200 fails until it does.
 
 ### fork(), Entry and Devices
