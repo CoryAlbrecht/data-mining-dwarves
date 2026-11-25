@@ -1,6 +1,6 @@
 import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block } from '@dmd/shared';
 import { deviceLabels } from '../components/hardware.ts';
-import type { Dwarf, LevelState } from '../state/world.ts';
+import { EXIT, type Dwarf, type LevelState } from '../state/world.ts';
 import { formatBytes, formatDuration } from './format.ts';
 
 /**
@@ -29,6 +29,8 @@ export interface CellView {
   dwarf?: Dwarf;
   /** How much of this cell a producing Device's Buffer level covers, bottom up: 0..1. */
   fill?: number;
+  /** Dig bar: the fraction (remaining / size) left of what's being dug; set only while a dwarf digs it. */
+  digBar?: number;
 }
 
 /** Pick a wear glyph: untouched → nearly dug out. */
@@ -36,6 +38,10 @@ function worn(glyphs: readonly string[], remaining: number, size: number): strin
   const used = 1 - remaining / size;
   return glyphs[Math.min(glyphs.length - 1, Math.floor(used * glyphs.length))]!;
 }
+
+/** Whether any dwarf in this Mine is digging a target that `hit` accepts (a cell number or EXIT). */
+const beingDug = (lvl: LevelState, ctx: ViewContext, hit: (target: number) => boolean) =>
+  ctx.dwarves.some((d) => d.depth === lvl.def.depth && d.target !== null && hit(d.target));
 
 const levelOf = (ctx: ViewContext, model: string) => ctx.deviceLevels[model] ?? 1;
 
@@ -59,6 +65,7 @@ export function cellView(lvl: LevelState, i: number, ctx: ViewContext): CellView
     case 'rock':
       v.glyph = worn(b.encrypted ? g.encrypted : g.rock, b.remaining, b.size);
       v.tiny = b.level;
+      if (beingDug(lvl, ctx, (t) => t === i)) v.digBar = b.remaining / b.size;
       v.title = `${b.encrypted ? 'Encrypted bit-rock' : 'Bit-rock'}, Level ${b.level}: ${formatBytes(b.remaining)} left (${formatDuration(secondsToDig(1, b.remaining))} for one L1 dwarf)`;
       break;
     case 'monster':
@@ -82,6 +89,12 @@ function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx:
     if (b.role === 'upgrade') v.tiny = def.level;
     v.title = `Buried hardware, Level ${def.level}: ${formatBytes(state.remaining)} left`;
     v.classes.push('cell-buried');
+    // The whole Device's bar shows on every one of its cells when a dwarf digs any of them.
+    const ofThisDevice = (t: number) => {
+      const c = lvl.blocks.value[t];
+      return c?.kind === 'device' && c.device === b.device;
+    };
+    if (beingDug(lvl, ctx, ofThisDevice)) v.digBar = state.remaining / def.size;
     return;
   }
   v.classes.push('cell-hardware');
@@ -132,10 +145,12 @@ export function portView(lvl: LevelState, _x: number, ctx: ViewContext): CellVie
       : `Network port${rubble && `:${rubble}`}`;
   const classes = ['wall', 'wall-port'];
   if (!exit.buried) classes.push('wall-port-open');
-  return {
+  const v: CellView = {
     glyph: exit.buried ? worn([g.portBuried, g.portBuried, g.portBuried], exit.remaining, def.exit.size) : g.portOpen,
     tiny: null,
     title,
     classes,
   };
+  if (exit.buried && beingDug(lvl, ctx, (t) => t === EXIT)) v.digBar = exit.remaining / def.exit.size;
+  return v;
 }
