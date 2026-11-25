@@ -84,10 +84,10 @@ export const inventory = signal<Record<string, number>>({});
 export const deviceLevels = signal<Record<string, number>>({});
 /** The dwarf keyboard moves apply to (follows focus / tap). */
 export const selectedDwarf = signal<number | null>(null);
-/** The Device whose details panel is open. */
-export const selectedDevice = signal<{ depth: number; device: number } | null>(null);
-/** The port panel that's open (by depth). */
-export const selectedPort = signal<number | null>(null);
+/** What a dialog over the page is showing: one Device's or one port's details. */
+export type DialogSubject = { kind: 'device'; depth: number; device: number } | { kind: 'port'; depth: number };
+/** The one open dialog, if any. */
+export const openDialog = signal<DialogSubject | null>(null);
 /** A dwarf being dragged with mouse or touch, and where the pointer is. */
 export const drag = signal<{ id: number; x: number; y: number } | null>(null);
 export const message = signal<string | null>(null);

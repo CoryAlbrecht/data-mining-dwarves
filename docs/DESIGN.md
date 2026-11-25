@@ -78,7 +78,13 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   - The **collect** spot (`⇩`; `+` on fork() for "buy a dwarf") and the **upgrade** spot (`⇧`,
     with the Level as a tiny number) are on the side facing the middle of the Mine, collect lowest.
   - Tapping upgrade spends chips right away, or flashes how many are still needed.
-  - The **label** cells show the kind and model, and tapping one opens the details panel.
+  - The **label** cells show the kind and model. Tapping one opens the **Device's dialog** (details,
+    collect, upgrade, automate). Tapping a buried Device opens nothing, only a ticker hint.
+- **Dialogs:** tapping a Device's label or the Network/USB port opens its dialog over the page.
+  It's modal: the Mine is dimmed and can't be tapped, but the game keeps running. Only one is open
+  at a time. It stays open after an action and updates live. Escape, ✕ or tapping the dimmed
+  backdrop closes it. While it's open the game keys rest, and Escape closes only the dialog. It
+  wears the Theme of the Mine it came from. The Entry has no dialog.
   - Keyboard: **E** collects from a Device next to the selected dwarf.
 - A Device with no cron job slowly cycles its collect glyph when it's **completely full**.
 
@@ -117,8 +123,9 @@ rock keeps its remaining size if the dwarves leave. The constants are in `DIG_CU
   is (except in a text field). E collects from a Device next to it. A mouse drag walks the dwarf to
   where you drop it.
   - Tapping, clicking or Tabbing to a dwarf selects it. Tab keeps normal browser order, so it also
-    reaches panel buttons.
-  - The selection stays through clicks elsewhere. Escape clears it.
+    reaches the page's other buttons.
+  - The selection stays through clicks elsewhere. Escape clears it (unless a dialog is open:
+    then Escape just closes the dialog).
   - After a merge, the merged dwarf is selected.
   - A selected dwarf that changes Mines stays selected, and the page scrolls to keep it in view.
   - Holding a key walks at the normal pace, then mines the first rock it bumps into.

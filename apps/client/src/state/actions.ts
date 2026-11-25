@@ -38,9 +38,8 @@ import {
   loading,
   makeLevelState,
   message,
-  selectedDevice,
   selectedDwarf,
-  selectedPort,
+  openDialog,
   underExit,
   type Dwarf,
   type LevelState,
@@ -273,7 +272,7 @@ function stepIntoExit(id: number): boolean {
   }
   if (lvl.def.exit.kind === 'port') return travelDown(id);
   updateDwarf(id, STOP);
-  selectedPort.value = d.depth;
+  openDialog.value = { kind: 'port', depth: d.depth };
   say('This dwarf is at the USB port. Ready to sneakernet to the next computer?');
   return false;
 }
@@ -502,10 +501,7 @@ export function tapCell(depth: number, i: number) {
     }
     if (b.role === 'collect') useDevice(depth, b.device);
     else if (b.role === 'upgrade') upgradeDevice(deviceDef(lvl, b.device).model);
-    else {
-      const sel = selectedDevice.value;
-      selectedDevice.value = sel?.depth === depth && sel.device === b.device ? null : { depth, device: b.device };
-    }
+    else openDialog.value = { kind: 'device', depth, device: b.device };
     return;
   }
   if (b.kind === 'rock') say('Move a dwarf next to it (or drag one onto it) to mine it.');
@@ -514,7 +510,11 @@ export function tapCell(depth: number, i: number) {
 
 /** Tap the port's stretch of Wall: open its panel. */
 export function tapExit(depth: number) {
-  selectedPort.value = selectedPort.value === depth ? null : depth;
+  openDialog.value = { kind: 'port', depth };
+}
+
+export function closeDialog() {
+  openDialog.value = null;
 }
 
 /** A Device's collect spot: collect its bytes, or for fork(), buy a dwarf. */
@@ -672,8 +672,7 @@ export async function sneakernet(depth: number) {
       dwarves.value = [{ id: 1, level: 1, depth: def.depth, pos: arrivalCell(def), target: null, ...STOP }];
       dwarvesBought.value = 0;
       selectedDwarf.value = 1;
-      selectedDevice.value = null;
-      selectedPort.value = null;
+      openDialog.value = null;
     });
     say(`Sneakernet complete! Welcome to computer ${def.computer + 1}: ${def.theme.name}.`);
   } catch {

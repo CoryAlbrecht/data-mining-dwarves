@@ -1,11 +1,11 @@
 /**
  * Keyboard play: WASD / arrow keys / E always drive the Selected dwarf (GLOSSARY.md), wherever
  * keyboard focus happens to be. One listener on the page, so moving a dwarf (which remounts its
- * button in another cell) or clicking a panel button can't break the next keystroke.
+ * button in another cell) or clicking a dialog button can't break the next keystroke.
  */
 import { WALK_SECONDS, type Direction } from '@dmd/shared';
-import { moveDwarf, selectDwarf, useAdjacentDevice } from './actions.ts';
-import { dwarves, selectedDwarf } from './world.ts';
+import { closeDialog, moveDwarf, selectDwarf, useAdjacentDevice } from './actions.ts';
+import { dwarves, openDialog, selectedDwarf } from './world.ts';
 
 const MOVES: Record<string, Direction> = {
   w: 'up', a: 'left', s: 'down', d: 'right',
@@ -58,6 +58,12 @@ function isTextField(target: unknown): boolean {
 export function handleKey(e: KeyPress): boolean {
   if (e.ctrlKey || e.metaKey || e.altKey || isTextField(e.target)) return false;
   const key = e.key.toLowerCase();
+  if (openDialog.value) {
+    // A dialog is up: game keys rest, and Escape closes only the dialog (the dwarf stays selected).
+    held = null;
+    if (key === 'escape') closeDialog();
+    return false;
+  }
   if (key === 'escape') {
     held = null;
     selectDwarf(null);
@@ -86,8 +92,8 @@ export function handleKeyUp(e: { key: string }) {
 /** Called by the game loop: while a direction key is held, step once per WALK_SECONDS. */
 export function walkHeldKey(dt: number) {
   if (!held) return;
-  if (selectedDwarf.value !== held.id) {
-    held = null; // deselected (Escape) or another dwarf picked: stop
+  if (selectedDwarf.value !== held.id || openDialog.value) {
+    held = null; // deselected (Escape), another dwarf picked, or a dialog opened: stop
     return;
   }
   held.sinceStep += dt;

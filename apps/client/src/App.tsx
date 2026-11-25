@@ -1,3 +1,4 @@
+import { GameDialog } from './components/Dialog.tsx';
 import { DragGhost } from './components/DwarfToken.tsx';
 import { Hud } from './components/Hud.tsx';
 import { Inventory } from './components/Inventory.tsx';
@@ -22,6 +23,7 @@ export function App() {
       </main>
       <Inventory />
       <DragGhost />
+      <GameDialog />
     </div>
   );
 }

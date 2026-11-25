@@ -183,6 +183,37 @@ button { font: inherit; color: inherit; }
 .inventory li { display: flex; justify-content: space-between; gap: 8px; }
 .inventory p { margin: 0; font-size: 0.8rem; }
 
+/* ── Dialog: a Device's or port's details over the page ──────────────────────── */
+.game-dialog {
+  --ink: var(--text);
+  --ink-dim: color-mix(in srgb, var(--ink) 40%, transparent);
+  width: min(448px, calc(100vw - 32px)); /* about as wide as a Mine */
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+}
+.game-dialog::backdrop { background: rgb(0 0 0 / 0.6); }
+.game-dialog .panel { position: relative; padding: 14px; gap: 8px; }
+.game-dialog .muted { color: var(--ink-dim); }
+.game-dialog h3 { padding-right: 2.2em; } /* room for ✕ */
+.dialog-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 2.2em;
+  min-height: 2.2em;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+/* On the CRT, the dialog is a green-phosphor box with a double-line (╔═╗) frame. */
+.theme-crt.game-dialog { border-radius: 0; position: fixed; } /* the Theme's position: relative would un-centre it */
+.theme-crt.game-dialog .panel { border: 4px double var(--phosphor); border-radius: 0; background: transparent; }
+
 /* ── CRT Theme: everything inside the Mine is phosphor green ───────────────────
    Font stack: retro face for ASCII → Unifont for nearly any other character → monochrome emoji
    (as a safety net only: Themes use no emoji). Change --crt-face to 'Sixtyfour' or 'Workbench'. */
