@@ -104,4 +104,19 @@ describe('in-place edits of source are blocked', () => {
     expect(blocksInPlaceEdit("timeout 5 sed -i 's/a/b/' apps/x.ts", repo, repo)).toBe(true);
     expect(blocksInPlaceEdit("env LC_ALL=C sed -i 's/a/b/' packages/x.ts", repo, repo)).toBe(true);
   });
+
+  it('reads a heredoc body as data, up to its delimiter', () => {
+    const body = "line one\nsed -i 's/a/b/' apps/x.ts\n";
+    expect(blocksInPlaceEdit(`git commit -F - <<'EOF'\n${body}EOF`, repo, repo)).toBe(false);
+    expect(blocksInPlaceEdit(`cat > notes.md <<EOF\n${body}EOF\necho done`, repo, repo)).toBe(false);
+    expect(blocksInPlaceEdit(`cat <<-"END"\n\t${body}\tEND`, repo, repo)).toBe(false);
+    expect(blocksInPlaceEdit(`cat <<EOF\n${body}EOF\nsed -i 's/a/b/' apps/y.ts`, repo, repo)).toBe(true); // after it ends
+    expect(blocksInPlaceEdit("cat <<< 'x'; sed -i 's/a/b/' apps/y.ts", repo, repo)).toBe(true); // a here-string
+  });
+
+  it('still sees the next command after a closed file descriptor', () => {
+    expect(blocksInPlaceEdit("foo >&-; sed -i 's/a/b/' apps/x.ts", repo, repo)).toBe(true);
+    expect(blocksInPlaceEdit("foo 2>&- && sed -i 's/a/b/' apps/x.ts", repo, repo)).toBe(true);
+    expect(blocksInPlaceEdit("exec 3<&-\nsed -i 's/a/b/' apps/x.ts", repo, repo)).toBe(true);
+  });
 });

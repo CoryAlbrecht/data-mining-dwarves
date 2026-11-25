@@ -68,4 +68,21 @@ describe("agents keep off the developer's dev ports", () => {
       expect(blocks(cmd), cmd).toBe(false);
     }
   });
+
+  it("treats -v and -c as help or check only where that tool does", () => {
+    expect(blocks('npx vite -c vite.config.ts')).toBe(true);
+    expect(blocks('npm run dev -v')).toBe(true);
+    expect(blocks('npx vite -v')).toBe(false);
+    expect(blocks('node -c apps/server/src/index.ts')).toBe(false);
+    expect(blocks('npm run dev -- --help')).toBe(false);
+  });
+
+  it('looks inside the commands given to concurrently', () => {
+    expect(blocks('npx concurrently "npm run dev -w @dmd/server" "npm run dev -w @dmd/client"')).toBe(true);
+    expect(blocks('npx concurrently -k "npm test" "npm run build"')).toBe(false);
+  });
+
+  it('still sees a start after a closed file descriptor', () => {
+    expect(blocks('echo x >&-; npm run dev')).toBe(true);
+  });
 });

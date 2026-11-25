@@ -49,6 +49,9 @@ export interface Copy {
 /** Where run files, logs, Chrome profiles and Vite caches live: git-ignored, at the repo root. */
 const RUN_DIR = resolve(import.meta.dirname, '..', '.serve-private');
 
+/** The copy a log file in the run directory belongs to (logs are named `<id>.log`). */
+const logOwner = (file: string) => (file.endsWith('.log') ? file.slice(0, -'.log'.length) : null);
+
 /** Everything a copy keeps on disk. */
 const copyPaths = (runDir: string, id: string) => ({
   run: join(runDir, `${id}.json`),
@@ -226,6 +229,7 @@ async function stop(args: string[]) {
   for (const id of ids) {
     try {
       await stopCopy(RUN_DIR, id);
+      rmSync(copyPaths(RUN_DIR, id).log, { force: true }); // stopCopy always keeps it, so a failed start can show it
       console.log(`Stopped ${id}.`);
     } catch (e) {
       failed = true;
@@ -233,6 +237,17 @@ async function stop(args: string[]) {
     }
   }
   if (!ids.length) console.log('No private copies to stop.');
+  if (args.length === 0 && existsSync(RUN_DIR)) {
+    // A bare stop also sweeps logs whose copy is gone (left by failed starts or older versions),
+    // under the start lock so a log whose start hasn't recorded its copy yet is never swept.
+    await withLock(RUN_DIR, async () => {
+      const live = new Set(listCopies(RUN_DIR).map((c) => c.id));
+      for (const f of readdirSync(RUN_DIR)) {
+        const owner = logOwner(f);
+        if (owner && !live.has(owner)) rmSync(join(RUN_DIR, f), { force: true });
+      }
+    });
+  }
   if (failed) process.exit(1);
 }
 

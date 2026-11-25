@@ -21,6 +21,10 @@ export function parseShell(command: string): Piece[] {
   let word: string | null = null;
   /** The next word is a redirection target (`> file`), never a command word or a file to edit. */
   let redirect = false;
+  /** The next redirection target is a heredoc's delimiter (`<<WORD`); `strip` for `<<-`. */
+  let heredocNext: { strip: boolean } | null = null;
+  /** Heredocs whose bodies start after the current line ends: delimiter, and whether tabs are stripped. */
+  const heredocs: { delimiter: string; strip: boolean }[] = [];
   const add = (text: string) => (word = (word ?? '') + text);
   const current = () => {
     const last = pieces.at(-1);
@@ -31,8 +35,24 @@ export function parseShell(command: string): Piece[] {
   };
   const endWord = () => {
     if (word !== null && !redirect) current().push(word);
+    if (word !== null && redirect && heredocNext) {
+      heredocs.push({ delimiter: word, ...heredocNext });
+      heredocNext = null;
+    }
     if (word !== null) redirect = false;
     word = null;
+  };
+  /** Skip the bodies of the heredocs opened on the line that ends at `i` (a newline); returns where the next line starts. */
+  const skipHeredocs = (i: number) => {
+    for (const { delimiter, strip } of heredocs.splice(0)) {
+      for (;;) {
+        const end = command.indexOf('\n', i + 1);
+        const line = command.slice(i + 1, end === -1 ? command.length : end);
+        i = end === -1 ? command.length : end;
+        if ((strip ? line.replace(/^\t+/, '') : line) === delimiter || end === -1) break;
+      }
+    }
+    return i;
   };
   for (let i = 0; i < command.length; i++) {
     const c = command[i]!;
@@ -65,7 +85,10 @@ export function parseShell(command: string): Piece[] {
     else if (c === '<' || c === '>' || (c === '&' && command[i + 1] === '>')) {
       if (word !== null && /^\d+$/.test(word)) word = null; // a file descriptor, as in 2>
       endWord();
-      while ('<>&'.includes(command[i + 1] ?? ' ')) i++; // >>, >&, &>, &>>
+      let op = command.slice(i).match(/^(&?[<>]+&?)/)![1]!;
+      if (op === '<<' && command[i + 2] === '-') op = '<<-'; // a '-' after any other operator closes a descriptor (>&-)
+      if (op === '<<' || op === '<<-') heredocNext = { strip: op === '<<-' };
+      i += op.length - 1; // >>, >&, &>, &>>, <<, <<-, <<<
       redirect = true;
     } else if (c === '(' || c === ')') {
       endWord();
@@ -73,6 +96,9 @@ export function parseShell(command: string): Piece[] {
     } else if (';|&\n'.includes(c)) {
       endWord();
       if ((c === '&' || c === '|') && command[i + 1] === c) i++; // && and ||
+      if (c === '\n' && heredocs.length) i = skipHeredocs(i); // their bodies are data, not commands
+      redirect = false; // a redirection with no target (as in >&-) ends here
+      heredocNext = null;
       pieces.push([]);
     } else add(c);
   }
@@ -104,6 +130,12 @@ const WRAPPERS: Record<string, { valueOptions: string[] }> = {
   npx: { valueOptions: ['-p', '--package', '-c', '--call'] },
 };
 
+/** concurrently's options that take a value; its other arguments are commands to run. */
+const CONCURRENTLY_VALUE_OPTIONS = [
+  '-n', '--names', '-c', '--prefix-colors', '-p', '--prefix', '-l', '--prefix-length', '-t', '--timestamp-format',
+  '-m', '--max-processes', '-s', '--success', '--restart-tries', '--restart-after', '--kill-signal', '--name-separator',
+];
+
 /** Drop a wrapper's own options (and their values) from the front of `words`. */
 function dropOptions(words: string[], valueOptions: string[]) {
   while (words[0]?.startsWith('-')) {
@@ -115,7 +147,7 @@ function dropOptions(words: string[], valueOptions: string[]) {
 /**
  * Every simple command `line` runs when started in `cwd`, with wrappers (`timeout 60`, `env X=1`,
  * `npx -y`, `npm exec`, `nohup`, `setsid`, `watch`) and keywords peeled off, and the inside of
- * `bash -c "…"` / `sh -c "…"` read as commands too. `cd` and `export` are followed, not yielded.
+ * `bash -c "…"`, `sh -c "…"` and concurrently's command strings read as commands too. `cd` and `export` are followed, not yielded.
  */
 export function* simpleCommands(line: string, cwd: string): Generator<SimpleCommand> {
   const dirs = [cwd]; // the top is the current directory; a subshell's cd ends with the subshell
@@ -150,12 +182,23 @@ export function* simpleCommands(line: string, cwd: string): Generator<SimpleComm
       } else if (words[0] === 'export') {
         for (const w of words.slice(1)) exported.add(w.split('=')[0]!);
       } else if ((words[0] === 'bash' || words[0] === 'sh') && words[1] === '-c' && words[2] !== undefined) {
-        for (const inner of simpleCommands(words[2], dir)) {
-          for (const v of env) inner.env.add(v);
-          yield inner;
+        yield* innerCommands(words[2], dir, env);
+      } else if (words[0] === 'concurrently') {
+        const args = words.slice(1);
+        for (let k = 0; k < args.length; k++) {
+          if (CONCURRENTLY_VALUE_OPTIONS.includes(args[k]!)) k++;
+          else if (!args[k]!.startsWith('-')) yield* innerCommands(args[k]!, dir, env);
         }
       } else if (words.length) yield { words, env, dir };
     }
+  }
+}
+
+/** The commands inside a command string (`bash -c "…"`, concurrently's arguments), inheriting `env`. */
+function* innerCommands(line: string, dir: string, env: Set<string>): Generator<SimpleCommand> {
+  for (const command of simpleCommands(line, dir)) {
+    for (const v of env) command.env.add(v);
+    yield command;
   }
 }
 

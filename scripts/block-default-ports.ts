@@ -34,7 +34,9 @@ function scriptServers(script: string | undefined, app: App): Servers {
 /** What one command starts, given its words and the workspace it runs in. */
 function serversStarted(words: string[], here: App, isServerEntry: (arg: string) => boolean): Servers {
   const [cmd, ...args] = words;
+  const has = (...flags: string[]) => args.some((a) => flags.includes(a));
   if (cmd === 'npm' || cmd === 'pnpm' || cmd === 'yarn') {
+    if (has('--help', '-h')) return {};
     const valueOf = (...flags: string[]) =>
       args.find((_, k) => flags.includes(args[k - 1]!)) ?? args.find((a) => flags.some((f) => a.startsWith(`${f}=`)))?.split('=')[1];
     let workspace = valueOf('-w', '--workspace', '--prefix', '--filter', '-F', '-C', '--dir');
@@ -47,11 +49,13 @@ function serversStarted(words: string[], here: App, isServerEntry: (arg: string)
     return scriptServers(rest[0], appOf(workspace) ?? here);
   }
   if (cmd === 'vite' || cmd?.endsWith('/vite')) {
+    if (has('--help', '-h', '--version', '-v')) return {};
     const sub = args.find((a) => !a.startsWith('-'));
     if (sub === 'build' || sub === 'optimize') return {};
     return sub === 'preview' ? { preview: true } : { client: true };
   }
   if (cmd === 'tsx' || cmd === 'node' || cmd?.endsWith('/tsx')) {
+    if (has('--help', '-h', '--version') || (cmd === 'node' && has('--check', '-c'))) return {};
     const valueOptions = ['--import', '--require', '-r', '--loader'];
     const entry = args.find((a, k) => !a.startsWith('-') && a !== 'watch' && !valueOptions.includes(args[k - 1]!));
     return entry && isServerEntry(entry) ? { api: true } : {};
@@ -62,7 +66,6 @@ function serversStarted(words: string[], here: App, isServerEntry: (arg: string)
 /** True when `command`, run in `cwd` inside `repo`, would start the game on a default port. */
 export function blocksDefaultPortStart(command: string, cwd: string, repo: string): boolean {
   for (const { words, env, dir } of simpleCommands(command, cwd)) {
-    if (words.some((w) => ['--help', '-h', '--version', '-v', '--check', '-c'].includes(w))) continue;
     const here = appOf(relative(repo, dir).split('/').slice(0, 2).join('/')) ?? 'root';
     const serverEntry = resolve(repo, 'apps/server/src/index.ts');
     const servers = serversStarted(words, here, (arg) => resolve(dir, arg) === serverEntry);
