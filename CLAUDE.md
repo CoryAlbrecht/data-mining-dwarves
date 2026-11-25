@@ -19,6 +19,12 @@ Puns are encouraged everywhere: chip names, monsters, level themes, UI copy.
 
 ## Agent skills
 
+### Workflow
+
+Every change to tracked files goes worktree → branch → PR, reviewed and merged by a different
+session. See `docs/agents/workflow.md` before changing any tracked file or touching a PR.
+A vague "work on something" request with no target goes to `/next-work`.
+
 ### Issue tracker
 
 GitHub Issues on the private repo `CoryAlbrecht/data-mining-dwarves`, managed with `gh`. See `docs/agents/issue-tracker.md`.

@@ -13,3 +13,12 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
 
 Edit the "Label in our tracker" column to match whatever vocabulary you actually use.
+
+## Labels on a PR
+
+On a PR the two ready labels say whose move it is (lifecycle in `workflow.md`):
+
+- `ready-for-agent`: an agent acts next, reviewing or fixing it (`workflow.md`, PR lifecycle
+  step 5).
+- `ready-for-human`: a review asked for changes or hit a rebase conflict. Agents leave the PR
+  alone until the human answers and relabels it `ready-for-agent`.
