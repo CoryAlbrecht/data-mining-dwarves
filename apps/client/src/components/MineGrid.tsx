@@ -1,5 +1,5 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
-import { cellView, portView, type ViewContext } from '../game/cellView.ts';
+import { cellView, portView, type CellView, type ViewContext } from '../game/cellView.ts';
 import { tapCell, tapExit } from '../state/actions.ts';
 import { frame } from '../state/clock.ts';
 import { deviceLevels, dialogSubject, dwarves, type LevelState } from '../state/world.ts';
@@ -33,6 +33,7 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
       cells.push(
         <div key={`t${x}`} className={v.classes.join(' ')} title={v.title || undefined} data-depth={depth} data-exit="" onClick={() => tapExit(depth)}>
           <span className="glyph">{v.glyph}</span>
+          <DigBar v={v} />
         </div>,
       );
     } else {
@@ -87,6 +88,12 @@ function Cell({ lvl, i, ctx }: { lvl: LevelState; i: number; ctx: ViewContext })
           {v.tiny !== null && <small className="tiny">{v.tiny}</small>}
         </>
       )}
+      <DigBar v={v} />
     </div>
   );
+}
+
+/** The dig bar along the top edge of a cell being dug, its width the fraction left. */
+function DigBar({ v }: { v: CellView }) {
+  return v.digBar === undefined ? null : <span className="dig-bar" style={{ width: `${v.digBar * 100}%` }} />;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { bufferCap, getDeviceModel, type Block, type LevelDef } from '@dmd/shared';
-import { makeLevelState, type Dwarf, type LevelState } from '../state/world.ts';
+import { dig } from '../state/actions.ts';
+import { EXIT, makeLevelState, type Dwarf, type LevelState } from '../state/world.ts';
 import { cellView, portView, type ViewContext } from './cellView.ts';
 
 /**
@@ -209,5 +210,79 @@ describe('portView', () => {
     const lvl = makeLevelState(fixture());
     expect(portView(lvl, 1, ctx({ dialog: { kind: 'port', depth: 1 } })).classes).toContain('wall-selected');
     expect(portView(lvl, 1, ctx({ dialog: { kind: 'port', depth: 2 } })).classes).not.toContain('wall-selected');
+  });
+});
+
+describe('dig bar', () => {
+  it('shows no bar on a rock with no dwarf', () => {
+    expect(cellView(makeLevelState(fixture()), 1, ctx()).digBar).toBeUndefined();
+  });
+
+  it('shows no bar on a rock a dwarf stands next to but is not digging', () => {
+    const lvl = makeLevelState(fixture());
+    expect(cellView(lvl, 0, ctx({ dwarves: [dwarf(1, 4, 5)] })).digBar).toBeUndefined();
+  });
+
+  it('shows remaining / size on a rock a dwarf is digging', () => {
+    const def = fixture();
+    def.blocks[0] = rock({ remaining: 30 });
+    expect(cellView(makeLevelState(def), 0, ctx({ dwarves: [dwarf(1, 4, 0)] })).digBar).toBe(0.25);
+  });
+
+  it('shows the bar on an encrypted bit-rock being dug', () => {
+    const def = fixture();
+    def.blocks[0] = rock({ encrypted: true, remaining: 60 });
+    expect(cellView(makeLevelState(def), 0, ctx({ dwarves: [dwarf(1, 4, 0)] })).digBar).toBe(0.5);
+  });
+
+  it('adds up the strikes of several dwarves digging the same rock', () => {
+    const lvl = makeLevelState(fixture());
+    const diggers = ctx({ dwarves: [dwarf(1, 4, 5), dwarf(2, 9, 5)] });
+    dig(lvl, 5, 30);
+    dig(lvl, 5, 30);
+    expect(cellView(lvl, 5, diggers).digBar).toBe(0.5);
+  });
+
+  it('shows the whole Device fraction on every cell of a buried Device when any cell is targeted', () => {
+    const lvl = makeLevelState(fixture());
+    lvl.devices.value = [{ buried: true, remaining: 90 }];
+    const c = ctx({ dwarves: [dwarf(1, 11, 7)] });
+    expect(cellView(lvl, 6, c).digBar).toBe(0.75);
+    expect(cellView(lvl, 7, c).digBar).toBe(0.75);
+  });
+
+  it('shows no bar on a dug-out Device', () => {
+    const lvl = uncovered();
+    expect(cellView(lvl, 6, ctx({ dwarves: [dwarf(1, 10, 6)] })).digBar).toBeUndefined();
+  });
+
+  it('shows the bar on every port cell while a dwarf digs the port', () => {
+    const lvl = makeLevelState(fixture());
+    lvl.exit.value = { buried: true, remaining: 60 };
+    const c = ctx({ dwarves: [dwarf(1, 1, EXIT)] });
+    expect(portView(lvl, 1, c).digBar).toBe(0.25);
+    expect(portView(lvl, 2, c).digBar).toBe(0.25);
+    expect(portView(lvl, 1, ctx()).digBar).toBeUndefined();
+  });
+
+  it('shows the bar on the USB port while it is dug', () => {
+    const lvl = makeLevelState(fixture(4));
+    const c = ctx({ dwarves: [{ ...dwarf(1, 1, EXIT), depth: 4 }] });
+    expect(portView(lvl, 1, c).digBar).toBe(1);
+  });
+
+  it('ignores dwarves digging the same cell in another Mine', () => {
+    const lvl = makeLevelState(fixture());
+    expect(cellView(lvl, 0, ctx({ dwarves: [{ ...dwarf(1, 4, 0), depth: 2 }] })).digBar).toBeUndefined();
+  });
+
+  it('drops the bar once the dwarf leaves a half-dug rock, keeping the wear glyph', () => {
+    const def = fixture();
+    def.blocks[0] = rock({ remaining: 50 });
+    const lvl = makeLevelState(def);
+    expect(cellView(lvl, 0, ctx({ dwarves: [dwarf(1, 4, 0)] })).digBar).toBeCloseTo(50 / 120);
+    const v = cellView(lvl, 0, ctx({ dwarves: [dwarf(1, 8, null)] }));
+    expect(v.digBar).toBeUndefined();
+    expect(v.glyph).toBe('▒');
   });
 });

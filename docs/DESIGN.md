@@ -61,6 +61,13 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   stack of three times the usual chips, usually for this Mine's Devices.
 - **Rocks show only a tiny Level number**, and what's inside is a surprise. The glyph wears down
   (▓ → ▒ → ░) as it's dug.
+- **Dig bar:** while at least one dwarf is digging a bit-rock, an encrypted bit-rock, a buried
+  Device or the Network/USB port, a thin bar in the Theme's ink colour runs along the top edge of
+  the cell (clear of the tiny Level number). Its width is the bytes left over the initial size, so
+  it shrinks toward the left as the combined Strikes of every dwarf on it land. A buried Device
+  shows its whole fraction on every one of its cells; the port shows it on all of its Wall cells.
+  The bar goes once no dwarf is digging the cell, even half-dug; the wear glyph still shows the
+  damage.
 - **Hardness:** the port has the hardest Level on the curve, and buried Devices have the
   second-hardest.
 - **Monsters** are scattered at random, never in the bottom 2 rows.
