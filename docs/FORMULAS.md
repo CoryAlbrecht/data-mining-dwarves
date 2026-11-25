@@ -13,6 +13,11 @@ Every formula and tunable number in the game, as the code has it today. Terms ar
   over the old ones. Every table on this page must be generated: to add one, add it to the script.
   Anything hand-written goes in prose or a code block.
 
+- **Measure generated Mines** with `npm run mine-stats -- [from] [to]` (default depths 1–12): per
+  depth and on average, the Rock curve median, rocks, holes, Monsters, encrypted bit-rocks,
+  producing Devices, chips per producing Device and byte-loot share. Use it before and after any
+  generation change, and for every number a ticket promises.
+
 Notation: `^` is a power, `·` is multiplication, `U(a–b)` is a uniform random draw between a and b,
 and `ceil`, `floor`, `round` round as usual. "Depth" is a Mine's global number, counted from 1. "C1"
 is the first Computer.

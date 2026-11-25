@@ -19,6 +19,7 @@
     "preview": "npm run preview -w @dmd/client",
     "fonts:unifont": "python3 -I scripts/build-unifont.py",
     "formulas": "tsx scripts/formulas.ts",
+    "mine-stats": "tsx scripts/mine-stats.ts",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
