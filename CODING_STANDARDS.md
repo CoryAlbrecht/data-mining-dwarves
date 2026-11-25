@@ -1,7 +1,7 @@
 # Coding standards
 
-Read at review time. Each rule is a judgement call that no automated check makes for you; the
-mechanical ones live in tests and the pre-commit hook instead.
+Follow these while writing code; review checks them. Each rule is a judgement call that no
+automated check makes for you; the mechanical ones live in tests and the pre-commit hook instead.
 
 ## Game rules and numbers
 

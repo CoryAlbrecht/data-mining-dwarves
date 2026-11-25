@@ -1,4 +1,4 @@
-/** Limits on how much game time the client credits at once. */
+/** The game clock: how often it ticks, and how much game time the client credits at once. */
 export const CLOCK = {
   /** Real time between game ticks. */
   tickMs: 100,

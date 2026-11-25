@@ -165,14 +165,22 @@ export function tables(): Table[] {
       [['Hole chance', (r) => pct(holeChance(r))]],
     ),
   );
-  // Runs of depths with the same Monster, found by asking monsterFor itself. The last run is open-ended.
-  const scanTo = MONSTER_BY_DEPTH.length * MONSTER_SPAWN.depthsPerKind * 4;
+  // Runs of depths with the same Monster, found by asking monsterFor itself. Every kind has had its
+  // turn by depth MONSTER_BY_DEPTH.length · depthsPerKind; scan twice that, then check the last kind
+  // holds for as far again, so the table can print the last run as open-ended ("20+").
+  const scanTo = 2 * MONSTER_BY_DEPTH.length * MONSTER_SPAWN.depthsPerKind;
   const runs: { id: MonsterId; from: number; to: number }[] = [];
   for (let d = 1; d <= scanTo; d++) {
     const id = monsterFor(d);
     const last = runs.at(-1);
     if (last?.id === id) last.to = d;
     else runs.push({ id, from: d, to: d });
+  }
+  const lastKind = runs.at(-1)!.id;
+  for (let d = scanTo; d <= 2 * scanTo; d++) {
+    if (monsterFor(d) !== lastKind) {
+      throw new Error(`monsterFor still changes past depth ${scanTo}; the monsters table can't end with an open run`);
+    }
   }
   add(
     'monsters',

@@ -10,7 +10,8 @@ Every formula and tunable number in the game, as the code has it today. Terms ar
 - **Every table is generated.** Each table under a `<!-- id -->` marker comes from
   [`scripts/formulas.ts`](../scripts/formulas.ts), which runs the real game code, and `npm test`
   fails if any of them drifts. After retuning, run `npm run formulas` and paste the changed tables
-  over the old ones.
+  over the old ones. Every table on this page must be generated: to add one, add it to the script.
+  Anything hand-written goes in prose or a code block.
 
 Notation: `^` is a power, `·` is multiplication, `U(a–b)` is a uniform random draw between a and b,
 and `ceil`, `floor`, `round` round as usual. "Depth" is a Mine's global number, counted from 1. "C1"
@@ -297,9 +298,9 @@ A fingerprint test (`apps/server/src/data/levels.test.ts`) over depths 1–200 f
   bottom-right.
 - **Entry column** is picked evenly from `LAYOUT.entryColumns` = columns 2–5 (0-based), leaving
   out any under fork().
-- **Producing Devices** alternate left and right walls (the first goes on the left with `LAYOUT.firstSideLeftChance = 0.5`). They
-  are spread evenly through the rows between `LAYOUT.clearTop = 1` and
-  `LAYOUT.clearBottom = 2`:
+- **Producing Devices** alternate left and right walls (the first goes on the left with
+  `LAYOUT.firstSideLeftChance = 0.5`). They are spread evenly through the rows between
+  `LAYOUT.clearTop = 1` and `LAYOUT.clearBottom = 2`:
 
   ```
   span = 12 − 1 − 2 = 9 rows
