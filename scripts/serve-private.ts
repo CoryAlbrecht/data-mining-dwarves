@@ -6,12 +6,15 @@
  *   npm run serve:private -- stop <id>           stop one copy
  *   npm run serve:private -- stop --session <s>  stop the copies a Claude Code session started
  *   npm run serve:private -- stop                stop every copy (a developer's cleanup)
+ *   … stop --from-hook                            SessionEnd hook: stop the ending session's copies
+ *                                                 (its id comes as JSON on stdin)
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { readHookInput } from './shell.ts';
 
 /** Port ranges for private copies: clear of the defaults (5173, 8787, Chrome's 9222). */
 export const RANGES = {
@@ -212,7 +215,11 @@ async function start() {
 /** Stop the chosen copies, carrying on past any that fail; exits non-zero if one did. */
 async function stop(args: string[]) {
   const all = listCopies(RUN_DIR);
-  const session = args[0] === '--session' ? args[1] : undefined;
+  let session = args[0] === '--session' ? args[1] : undefined;
+  if (args[0] === '--from-hook') {
+    session = (await readHookInput<{ session_id?: string }>()).session_id;
+    if (!session) return; // no session named: stop nothing rather than everything
+  }
   const ids =
     session !== undefined ? all.filter((c) => c.owner === session).map((c) => c.id) : args[0] ? [args[0]] : all.map((c) => c.id);
   let failed = false;

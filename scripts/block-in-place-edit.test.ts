@@ -99,4 +99,9 @@ describe('in-place edits of source are blocked', () => {
     expect(blocksInPlaceEdit('x=$(echo ")"); sed -i s/a/b/ apps/x.ts', repo, repo)).toBe(true);
     expect(blocksInPlaceEdit("x=$(printf '%s)' a); cd apps && sed -i s/a/b/ x.ts", repo, repo)).toBe(true);
   });
+
+  it('sees through command wrappers like timeout and env', () => {
+    expect(blocksInPlaceEdit("timeout 5 sed -i 's/a/b/' apps/x.ts", repo, repo)).toBe(true);
+    expect(blocksInPlaceEdit("env LC_ALL=C sed -i 's/a/b/' packages/x.ts", repo, repo)).toBe(true);
+  });
 });
