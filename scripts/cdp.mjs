@@ -1,7 +1,9 @@
 /**
  * Drive a headless Chrome page from a check script, for verifying the game in a real browser.
  *
- *   node scripts/cdp.mjs <check.mjs> [--chrome 9333]
+ *   node scripts/cdp.mjs <check.mjs> --chrome <port>
+ *
+ * The Chrome port is the one `npm run serve:private` printed for your copy.
  *
  * The check script default-exports `async (t) => { ... }`, where `t` has:
  *   t.nav(url, ms?)      navigate, then wait ms (default 3000) for the game to boot
@@ -19,9 +21,9 @@ import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const script = args[0];
-const chromePort = args.includes('--chrome') ? args[args.indexOf('--chrome') + 1] : '9333';
-if (!script) {
-  console.error('usage: node scripts/cdp.mjs <check.mjs> [--chrome 9333]');
+const chromePort = args.includes('--chrome') ? args[args.indexOf('--chrome') + 1] : undefined;
+if (!script || !chromePort) {
+  console.error('usage: node scripts/cdp.mjs <check.mjs> --chrome <port from npm run serve:private>');
   process.exit(1);
 }
 

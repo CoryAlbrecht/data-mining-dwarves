@@ -32,8 +32,10 @@ In dev, add `?speed=20` to the URL to fast-forward the game clock for playtestin
 to wipe this browser's save, caches and service worker and start over as a first-time visitor
 (the page reloads without the flag; other flags like `?speed` are kept).
 
-To run a second copy beside your own (say, for an agent's browser checks), move its ports:
-`API_PORT=8799 CLIENT_PORT=5198 VITE_CACHE_DIR=/tmp/vite-2 npm run dev`.
+For a private copy on free ports (API, client and headless Chrome, as agents use for browser
+checks), run `npm run serve:private`; stop it with `npm run serve:private -- stop <id>` (or every copy
+with a bare `stop`). To move your
+own `npm run dev` instead, set `CLIENT_PORT`, `API_PORT` and `VITE_CACHE_DIR`.
 
 To playtest on a phone or tablet, connect it to the same network and open the `Network:` URL that
 `npm run dev` prints (e.g. `http://192.168.1.20:5173/`). Only the client is exposed; it proxies
