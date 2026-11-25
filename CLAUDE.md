@@ -11,8 +11,8 @@ Puns are encouraged everywhere: chip names, monsters, level themes, UI copy.
 - Keep all names, art and level designs original. The game shares genre mechanics with other idle
   mining games but must not copy their names, characters, art or look.
 - In-game currency only. Never add a real-money purchase path.
-- Verify with: `npm run typecheck && npm test && npm run build`. The pre-commit hook runs the first
-  two.
+- Verify with: `npm run typecheck && npm test && npm run build`. The pre-commit hook runs all
+  three.
 - CRT levels use the font stack retro face → `DMD Unifont` (chunked, `scripts/build-unifont.py`) →
   Noto Emoji. Any Unicode character is fine in glyph levels.
 - Playtest with `?speed=N` in dev, or headless: `google-chrome --headless=new --virtual-time-budget=…`.
