@@ -97,7 +97,9 @@ GitHub branch protection is unavailable (private repo without Pro), so a PreTool
 - `Edit`, `Write` and `NotebookEdit` on paths inside the main checkout. Git-ignored paths and
   paths outside the repo stay allowed.
 - `git commit`, `push`, `merge`, `rebase` and `reset` while the current branch is `main`, in any
-  worktree.
+  worktree, including through `git -C <path>` or an earlier `cd`.
+- `git push` from any branch when it would update `main`: a `main` or `HEAD:main` refspec, or
+  `--all`, `--branches` or `--mirror`.
 
 It allows `git pull --ff-only` in the main checkout and `gh pr merge`. When the hook blocks a
 command, the fix is a worktree and a branch; working around the hook breaks the workflow it
