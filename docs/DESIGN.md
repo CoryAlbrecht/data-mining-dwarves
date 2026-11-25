@@ -2,20 +2,21 @@
 
 This is the working design. Anything marked **(assumption)** fills a gap in the spec and should be
 confirmed or corrected. Every tunable number lives in `packages/shared`, so balancing changes data,
-not code.
+not code. **The formulas and numbers are in [`FORMULAS.md`](FORMULAS.md)**; this page describes the
+rules in words.
 
 ## Core loop
 
-1. **Dwarves dig bit-rocks.** Dig time is an equation of dwarf level vs. rock level (below).
+1. **Dwarves dig bit-rocks.** Dig time is an equation of dwarf Level vs. rock Level (below).
 2. **Bit-rocks drop loot:** usually **bytes** (the currency), sometimes **chips**. A chip belongs to
    a specific device model, such as a "4004 CPU chip" or an "8 kB DRAM chip". Chips can be for
-   devices that aren't on the current level, like an 80286 chip on an early level.
-3. **Devices are buried in each level:** a CPU socket, a DRAM slot, a storage drive, VRAM, the
-   network port (or a USB port on a computer's last level), and peripherals. You have to dig them
+   devices that aren't in the current Mine, like an 80286 chip in an early Mine.
+3. **Devices are buried in each Mine:** a CPU socket, a DRAM slot, a storage drive, VRAM, the
+   network port (or a USB port on a computer's last Mine), and peripherals. You have to dig them
    out first.
 4. **Uncovered devices produce bytes** into a buffer. The player has to **tap to collect** them,
    and the buffer has a cap **(assumption)**, so ignoring a device wastes output.
-5. **Chips work like cards.** Spending N chips of a model raises that device's **level**. It's
+5. **Chips work like cards.** Spending N chips of a model raises that device's **Level**. It's
    still a 4004, but it produces more bytes.
 6. **Automation** comes from a special drop: a **cron job** chip. Applying one to a device makes it
    collect its own output.
@@ -53,11 +54,11 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   50% chance to swap with a rock up to 2 rows away, so the layers aren't perfectly stratified.
 - **Loot odds** for ordinary bit-rocks: 55% bytes, 24% chips for this Mine's producing Devices,
   3% fork(), 6% chips for this Mine's Network technologies, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
-- **Chip stacks:** a model chip comes as a stack of **ceil(rock Level / 3)**, with a 20% chance of
+- **Chip stacks:** a model chip comes as a stack that grows with the rock's Level, sometimes with
   one extra. Duplex and cron chips always come one at a time. Over the first two Computers that
   works out to about 4 chips per producing Device per Mine.
 - **Encrypted bit-rocks** (the treasure chests) come only from the hardest Level and always hold a
-  stack of **3 × ceil(Level / 3)** chips, usually for this Mine's Devices.
+  stack of three times the usual chips, usually for this Mine's Devices.
 - **Rocks show only a tiny Level number**, and what's inside is a surprise. The glyph wears down
   (▓ → ▒ → ░) as it's dug.
 - **Hardness:** the port has the hardest Level on the curve, and buried Devices have the
@@ -98,13 +99,9 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 
 ## Rocks and digging
 
-Bit-rocks have a **size in bytes**. Each strike of a dwarf's pick (one per second) removes a fixed
-amount that depends on the dwarf's level:
-
-```
-rockSize(r)     = 120 B · 1.6^(r−1)       (r = rock tier from depth: 120 B, 192 B, 307 B, …)
-strikeDamage(d) = 4 B · 1.5^(d−1)         (d = dwarf level: 4, 6, 9, … B per strike)
-```
+Bit-rocks have a **size in bytes** that grows with their Level. Each Strike of a dwarf's pick (one
+per second) removes a fixed amount that grows with the dwarf's Level, a little more slowly than
+rocks grow. The curves are in [`FORMULAS.md` §1](FORMULAS.md#1-digging).
 
 | Dwarf vs. rock | Time |
 |---|---|
@@ -134,12 +131,12 @@ rock keeps its remaining size if the dwarves leave. The constants are in `DIG_CU
 - **Orthogonal only. Nothing moves or mines diagonally.**
 - Moving **into a rock** (key or drag) forces the dwarf to mine that rock. Dropping a dragged dwarf
   on a rock walks it next to the rock and starts mining.
-- When a rock breaks, the dwarf **starts on the next adjacent rock by itself**. Odd-level dwarves
-  check **W, A, S, D** (up, left, down, right) and even-level dwarves check **D, S, A, W**.
+- When a rock breaks, the dwarf **starts on the next adjacent rock by itself**. Odd-Level dwarves
+  check **W, A, S, D** (up, left, down, right) and even-Level dwarves check **D, S, A, W**.
 - A broken rock **leaves its loot (bytes or a stack of chips) on the floor**. Dwarves never pick things up on
   their own; the player has to move a dwarf onto the item.
-- Moving a dwarf **onto a same-level dwarf merges them** into one dwarf of the next level. A
-  different-level dwarf blocks the way.
+- Moving a dwarf **onto a same-Level dwarf merges them** into one dwarf of the next Level. A
+  different-Level dwarf blocks the way.
 - Monsters block cells. The player taps them to fight; dwarves don't fight.
 
 ## Devices and hardware progression
@@ -150,40 +147,41 @@ different rates**, the way real hardware did (`packages/shared/src/computers.ts`
 
 - **CPU:** fixed for a whole computer. Each new computer jumps it 2 or 3 models, so computer 2 has
   an 8080 or a Z80.
-- **DRAM:** one model bigger every level.
-- **Storage:** a bit slower, about 3 models every 4 levels.
-- **VRAM:** first appears on the 3rd level, then grows at half a model per level.
+- **DRAM:** one model bigger every Mine.
+- **Storage:** a bit slower, about 3 models every 4 Mines.
+- **VRAM:** first appears in the 3rd Mine, then grows at half a model per Mine.
 - **On a new computer,** DRAM, storage and VRAM restart lower than where the last computer ended,
   but not back at the very start. Each part keeps a share of its progress (`PART_PACE`).
 
-Each model keeps its **level across the whole game**, so chips for a 4004 found anywhere upgrade
-every 4004 **(assumption: levels are per model, like cards)**.
+Each model keeps its **Level across the whole game**, so chips for a 4004 found anywhere upgrade
+every 4004 **(assumption: Levels are per model, like cards)**.
 
 | Kind | Role |
 |---|---|
 | CPU, DRAM, storage, VRAM | Produce bytes. Upgrade with that model's chips. |
-| `fork()` (the dwarf forge) | Sells a new dwarf for bytes. Each one costs a bit more than the last. Its level (from `fork()` chips) sets the level of the dwarves it makes. |
-| Network port | Sends dwarves to the next level (below). |
+| `fork()` (the dwarf forge) | Sells a new dwarf for bytes. Each one costs a bit more than the last. Its Level (from `fork()` chips) sets the Level of the dwarves it makes. |
+| Network port | Sends dwarves to the next Mine (below). |
 
-Upgrading a device from level L to L+1 costs `ceil(2 · 1.5^(L−1))` chips: 2, 3, 5, 7, 11, …
+Each Level up costs about 1.5× the chips of the one before: 2, 3, 5, 7, 11, … (see
+[`FORMULAS.md` §7](FORMULAS.md#7-devices)).
 
 ## Dwarves
 
 - You start with **one L1 dwarf** just inside the first Mine's Entry.
-- Buy more from `fork()` (one per Mine). Each one costs a bit more than the last, and it appears
+- Buy more from `fork()`, as many as you can afford. Each one costs a bit more than the last, and it appears
   on the free cell nearest the Entry.
 - Merge by moving one dwarf onto another of the same Level (see Moving dwarves).
 
 ## Network port and the Chain
 
-- Each level's network port connects it to the next level. You dig it out, then upgrade it with
-  chips. Levels form a **chain** you can scroll back through.
-- **Capacity:** a port at level L lets `floor(L/2) + 1` dwarves through in total **(assumption:
-  a lifetime total per port, not per trip; bringing a dwarf back frees its slot)**.
-- **Port technology** limits which dwarf levels can pass. Upgrading the technology resets the port
-  to level 1, which lowers its capacity again:
+- Each Mine's network port connects it to the next Mine. You dig it out, then upgrade it with
+  chips. Mines form the **Chain** you can scroll back through.
+- **Capacity:** a port's Level sets how many dwarves can be through it at the same time, one more
+  every 2 Levels. Bringing a dwarf back up frees its place.
+- **Port technology** limits which dwarf Levels can pass. Upgrading the technology resets the port
+  to Level 1, which lowers its capacity again:
 
-  | Technology | Port levels | Highest dwarf it passes |
+  | Technology | Port Levels | Highest dwarf it passes |
   |---|---|---|
   | Serial | 300 → 115,200 baud | L4 |
   | 1 Mb Ethernet | L1+ | L5 |
@@ -196,31 +194,32 @@ Upgrading a device from level L to L+1 costs `ceil(2 · 1.5^(L−1))` chips: 2, 
 - A new Computer's ports **start one technology further along** (computer 2 starts at 1 Mb
   Ethernet, and so on).
 - **Duplex chips** let dwarves come back up. With duplex installed, moving a dwarf onto the entry
-  cell takes it back up, and it arrives in the top row under the port above. This recovers a low-level dwarf
+  cell takes it back up, and it arrives in the top row under the port above. This recovers a low-Level dwarf
   sent by mistake, or brings abandoned dwarves along later.
-- Devices on earlier levels keep producing. You scroll back up to collect from them, or automate
+- Devices in earlier Mines keep producing. You scroll back up to collect from them, or automate
   them.
 
 ## Computers and sneakernet
 
-- The game is a series of **computers**, each a run of levels. Depth numbers keep counting across
+- The game is a series of **computers**, each a run of Mines. Depth numbers keep counting across
   computers.
 - **Computer length is variable but always a power of two. The exact rule is still to be decided.**
-  The placeholder in `computerLength()` is 4, 8, 16, 32… levels.
-- The **last level of each computer has a USB port** instead of a network port. Once it's dug out
+  The placeholder in `computerLength()` is 4, 8, 16, 32… Mines.
+- The **last Mine of each computer has a USB port** instead of a network port. Once it's dug out
   and a dwarf is standing on it, the player confirms the **sneakernet**:
-  - **The old computer is gone for good:** its levels, devices and dwarves.
+  - **The old computer is gone for good:** its Mines, devices and dwarves.
   - **You start over with a single L1 dwarf**, and the fork() price resets
     **(assumption: it resets because the dwarves it counted are gone)**.
-  - **You keep** bytes, chips and device levels.
-  - The new computer has **bigger bit-rocks**: rock tiers start 2 higher on each computer. Its
-    hardware follows the progression rules above.
+  - **You keep** bytes, chips and device Levels.
+  - The new computer's **Rock curve starts a quarter of the way up** the last computer's
+    first-to-last range (see Mine layout), so its rocks start a little harder than the last
+    computer's first Mine. Its hardware follows the progression rules above.
 - **Looks, per computer:**
   1. Green-phosphor CRT with ASCII/Unicode glyphs (built).
   2. CGA 8-color text mode. Foreground and background colors make bit-rocks harder or easier to
      mine, or hint at what's inside. **Not built yet:** computer 2 uses the plain tile look for now.
   3. … more themes.
-- **Known tuning issue:** on long computers (16+ levels) DRAM and storage reach the end of their
+- **Known tuning issue:** on long computers (16+ Mines) DRAM and storage reach the end of their
   12-model ladders. The ladders need more models, or the pacing needs to slow down.
 
 ## Currency

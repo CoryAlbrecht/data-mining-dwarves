@@ -177,7 +177,7 @@ export function generateLevel(depth: number): LevelDef {
   });
   for (const d of devices) placeDevice(blocks as Block[], d);
 
-  // 4. Holes: the whole bottom row, everything touching fork(), then 50% → 10% going up.
+  // 4. Holes: the whole bottom row, everything touching fork(), then 60% → 12% going up.
   const touchesFork = (x: number, y: number) =>
     x >= fork.x - 1 && x <= fork.x + fork.w && y >= fork.y - 1 && y <= fork.y + fork.h;
   for (let y = 0; y < H; y++) {

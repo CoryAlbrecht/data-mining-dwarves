@@ -45,6 +45,10 @@ _Avoid_: Border
 An empty cell. Some Mines start with holes, and digging out a bit-rock leaves one. Dwarves walk through holes.
 _Avoid_: Gap, cave
 
+**Strike**:
+One blow of a dwarf's pick, once a second. Each strike knocks some bytes off the size of the bit-rock, Device or port it's digging; higher-Level dwarves knock off more.
+_Avoid_: Hit, tick
+
 **Item**:
 Loot (bytes, or one or more of a chip) left lying in a cell after its bit-rock breaks, waiting for a dwarf to step on it.
 _Avoid_: Drop, pickup
@@ -55,6 +59,10 @@ A stretch of a Mine's bottom Wall. Dwarves arrive on the cell just inside it fro
 **Device**:
 A fixed piece of hardware mounted against a Mine's side, 2×2 cells or larger: CPU, DRAM, storage, VRAM, or fork(). Most start buried and producing Devices make bytes; fork() starts uncovered.
 _Avoid_: Peripheral, socket, slot
+
+**Buffer**:
+The bytes a producing Device has made but nobody has collected yet. It fills up to a cap and then stops filling until the player collects, unless a cron job collects for it.
+_Avoid_: Storage (that's a kind of Device), bank
 
 **fork()**:
 The Device that spawns new dwarves for bytes.

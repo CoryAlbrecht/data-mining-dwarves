@@ -5,6 +5,8 @@ Puns are encouraged everywhere: chip names, monsters, level themes, UI copy.
 
 - The game design is in `docs/DESIGN.md`. Read it before changing game rules, and update it when
   the rules change.
+- Every formula and tunable number is written down in `docs/FORMULAS.md`. Update it in the same
+  change when a curve or constant in `packages/shared` (or the Mine generator) changes.
 - Monorepo using npm workspaces: `apps/client` (React+Vite PWA), `apps/server` (Hono), `packages/shared`.
 - Keep all names, art and level designs original. The game shares genre mechanics with other idle
   mining games but must not copy their names, characters, art or look.
