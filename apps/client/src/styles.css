@@ -107,7 +107,6 @@ button { font: inherit; color: inherit; }
 }
 .wall { color: var(--ink-dim); }
 .wall-port, .wall-entry { color: var(--ink); cursor: pointer; }
-.wall-selected { animation: blink 1s steps(2) infinite; }
 
 .cell { cursor: pointer; color: var(--ink-dim); }
 .cell-lit { color: var(--ink); }
@@ -122,7 +121,6 @@ button { font: inherit; color: inherit; }
   transition: --fill 1s linear;
 }
 .cell-label .glyph { font-size: 34cqh; letter-spacing: -0.02em; white-space: nowrap; }
-.cell-selected { background: color-mix(in srgb, var(--ink) 25%, transparent); }
 .cell-full .glyph { animation: pulse 4s ease-in-out infinite; }
 
 /* Tiny number: a bit-rock's Level, a Device's Level, a monster's HP, a dwarf's Level. */

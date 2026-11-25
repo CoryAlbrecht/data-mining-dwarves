@@ -1,6 +1,6 @@
 import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block } from '@dmd/shared';
 import { deviceLabels } from '../components/hardware.ts';
-import type { DialogSubject, Dwarf, LevelState } from '../state/world.ts';
+import type { Dwarf, LevelState } from '../state/world.ts';
 import { formatBytes, formatDuration } from './format.ts';
 
 /**
@@ -11,8 +11,6 @@ export interface ViewContext {
   dwarves: readonly Dwarf[];
   /** Level of each Device model (models not listed are Level 1). */
   deviceLevels: Readonly<Record<string, number>>;
-  /** The open dialog, if any. */
-  dialog: DialogSubject | null;
   frame: number;
 }
 
@@ -110,8 +108,6 @@ function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx:
     v.classes.push('cell-label');
     v.title = `${model.name}: tap for details`;
   }
-  const open = ctx.dialog;
-  if (open?.kind === 'device' && open.depth === lvl.def.depth && open.device === b.device) v.classes.push('cell-selected');
 }
 
 /**
@@ -136,7 +132,6 @@ export function portView(lvl: LevelState, _x: number, ctx: ViewContext): CellVie
       : `Network port${rubble && `:${rubble}`}`;
   const classes = ['wall', 'wall-port'];
   if (!exit.buried) classes.push('wall-port-open');
-  if (ctx.dialog?.kind === 'port' && ctx.dialog.depth === def.depth) classes.push('wall-selected');
   return {
     glyph: exit.buried ? worn([g.portBuried, g.portBuried, g.portBuried], exit.remaining, def.exit.size) : g.portOpen,
     tiny: null,
