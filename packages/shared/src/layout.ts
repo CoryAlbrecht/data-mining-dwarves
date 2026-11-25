@@ -33,6 +33,8 @@ export const LAYOUT = {
   clearBottom: 2,
   /** Chance fork() sits in the bottom-left corner (otherwise bottom-right). */
   forkLeftChance: 0.5,
+  /** Chance the first producing Device goes on the left wall (they alternate from there). */
+  firstSideLeftChance: 0.5,
   /** Columns of the bottom Wall the Entry can take (any under fork() are skipped). */
   entryColumns: [2, 3, 4, 5],
   /** A buried Device holds one rock's bytes for every this many cells of footprint, rounded up. */

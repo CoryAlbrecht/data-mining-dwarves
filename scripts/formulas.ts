@@ -27,6 +27,7 @@ import {
   MINE_HEIGHT,
   MONSTER_BY_DEPTH,
   MONSTER_SPAWN,
+  monsterFor,
   MONSTERS,
   NETWORK_TECHS,
   PART_PACE,
@@ -38,6 +39,7 @@ import {
   rockSize,
   strikeDamage,
   byteLoot,
+  type MonsterId,
   type ProducingKind,
 } from '../packages/shared/src/index.ts';
 
@@ -163,16 +165,25 @@ export function tables(): Table[] {
       [['Hole chance', (r) => pct(holeChance(r))]],
     ),
   );
-  const per = MONSTER_SPAWN.depthsPerKind;
+  // Runs of depths with the same Monster, found by asking monsterFor itself. The last run is open-ended.
+  const scanTo = MONSTER_BY_DEPTH.length * MONSTER_SPAWN.depthsPerKind * 4;
+  const runs: { id: MonsterId; from: number; to: number }[] = [];
+  for (let d = 1; d <= scanTo; d++) {
+    const id = monsterFor(d);
+    const last = runs.at(-1);
+    if (last?.id === id) last.to = d;
+    else runs.push({ id, from: d, to: d });
+  }
   add(
     'monsters',
     table(
       ['Depths', 'Monster', 'HP (taps)', 'Bounty'],
-      MONSTER_BY_DEPTH.map((id, k) => {
-        const from = Math.max(1, k * per);
-        const depths = k === MONSTER_BY_DEPTH.length - 1 ? `${from}+` : `${from}–${(k + 1) * per - 1}`;
-        return [depths, MONSTERS[id].name, MONSTERS[id].hp, `${fmt(MONSTERS[id].bounty)} B`];
-      }),
+      runs.map(({ id, from, to }, k) => [
+        k === runs.length - 1 ? `${from}+` : from === to ? String(from) : `${from}–${to}`,
+        MONSTERS[id].name,
+        MONSTERS[id].hp,
+        `${fmt(MONSTERS[id].bounty)} B`,
+      ]),
     ),
   );
 
@@ -293,7 +304,7 @@ export function tables(): Table[] {
     table(
       ['What', 'Value', 'Source'],
       [
-        ['Game tick', '100 ms', '`TICK_MS` in `apps/client/src/state/loop.ts`'],
+        ['Game tick', `${CLOCK.tickMs} ms`, '`CLOCK.tickMs` in `packages/shared/src/clock.ts`'],
         [
           'Catch-up per tick after a backgrounded tab',
           `at most ${CLOCK.maxCatchUpSeconds} s`,

@@ -297,8 +297,9 @@ A fingerprint test (`apps/server/src/data/levels.test.ts`) over depths 1–200 f
   bottom-right.
 - **Entry column** is picked evenly from `LAYOUT.entryColumns` = columns 2–5 (0-based), leaving
   out any under fork().
-- **Producing Devices** alternate left and right walls (which side goes first is 50/50). They
-  are spread evenly through the rows between `clearTop = 1` and `clearBottom = 2`:
+- **Producing Devices** alternate left and right walls (the first goes on the left with `LAYOUT.firstSideLeftChance = 0.5`). They
+  are spread evenly through the rows between `LAYOUT.clearTop = 1` and
+  `LAYOUT.clearBottom = 2`:
 
   ```
   span = 12 − 1 − 2 = 9 rows
@@ -321,7 +322,7 @@ holeChance(r) = 0.60 + (0.12 − 0.60) · (r − 1) / 10      r = row from the b
 
 ### Monsters
 
-Each cell that isn't a Device or hole, outside the bottom `clearBottom = 2` rows, becomes a
+Each cell that isn't a Device or hole, outside the bottom `MONSTER_SPAWN.clearBottom = 2` rows, becomes a
 Monster with this chance:
 
 ```
@@ -551,7 +552,7 @@ The next Computer's Rock curve starts at the handover median (§4), and its hard
 <!-- time -->
 | What | Value | Source |
 | --- | --- | --- |
-| Game tick | 100 ms | `TICK_MS` in `apps/client/src/state/loop.ts` |
+| Game tick | 100 ms | `CLOCK.tickMs` in `packages/shared/src/clock.ts` |
 | Catch-up per tick after a backgrounded tab | at most 5 s | `CLOCK.maxCatchUpSeconds` in `packages/shared/src/clock.ts` |
 | Offline production credited on load | at most 8 h | `CLOCK.maxOfflineSeconds` in `packages/shared/src/clock.ts` |
 | Collect minimum | 0.5 B | `ECONOMY.minCollect` in `packages/shared/src/devices.ts` |

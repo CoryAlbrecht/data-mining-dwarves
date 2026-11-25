@@ -4,8 +4,6 @@ import { dig, produceFor, reachGoal, updateDwarf, walkStep } from './actions.ts'
 import { walkHeldKey } from './keyboard.ts';
 import { dwarves, EXIT, isMinable, levelAt, levels, underExit, type Dwarf, type LevelState } from './world.ts';
 
-const TICK_MS = 100;
-
 /** Dev-only fast-forward for playtesting and balancing: http://localhost:5173/?speed=20 */
 const SPEED =
   import.meta.env.DEV && typeof location !== 'undefined'
@@ -99,6 +97,6 @@ export function startLoop(): () => void {
     // Cap catch-up after a backgrounded tab; offline time is credited separately.
     tick(Math.min(CLOCK.maxCatchUpSeconds, (now - last) / 1000) * SPEED);
     last = now;
-  }, TICK_MS);
+  }, CLOCK.tickMs);
   return () => clearInterval(id);
 }

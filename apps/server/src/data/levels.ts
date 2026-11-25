@@ -162,7 +162,7 @@ export function generateLevel(depth: number): LevelDef {
   const { w: dw, h: dh } = deviceFootprint(place.computer);
   const top = LAYOUT.clearTop;
   const span = H - LAYOUT.clearTop - LAYOUT.clearBottom;
-  const firstSide = rand() < 0.5 ? 0 : 1;
+  const firstSide = rand() < LAYOUT.firstSideLeftChance ? 0 : 1;
   const sides: [typeof hardware, typeof hardware] = [[], []];
   hardware.forEach((m, k) => sides[(firstSide + k) % 2]!.push(m));
   sides.forEach((models, side) => {
