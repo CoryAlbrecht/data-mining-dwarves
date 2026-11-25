@@ -87,7 +87,12 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   at a time. It stays open after an action and updates live. Escape, ✕ or tapping the dimmed
   backdrop closes it. While it's open the game keys rest, and Escape closes only the dialog. It
   wears the Theme of the Mine it came from. The Entry has no dialog.
-- A Device with no cron job slowly cycles its collect glyph when it's **completely full**.
+- Every producing Device **fills like a tank** as its Buffer grows: the level (Buffer over its cap)
+  rises smoothly across the whole Device, bottom row first, so a cell can be partly filled. The
+  empty part is the faint Device background and the filled part a little stronger. Automated
+  Devices show it too; fork() produces nothing and doesn't fill.
+- When a Device with no cron job is **completely full**, its Collect button gives one soft pulse
+  every 4 seconds. Reduced motion turns the pulse off.
 
 ## Look
 

@@ -5,7 +5,7 @@ import { formatBytes, formatDuration } from './format.ts';
 
 /**
  * The rest of the world a cell's look depends on, passed in so the cell-view functions stay pure.
- * `frame` is only for frame-driven animation (the full-Buffer glyph swap); nothing else reads it.
+ * `frame` is only for the grid's frame-driven animation (the dwarves' dance); no cell decision reads it.
  */
 export interface ViewContext {
   dwarves: readonly Dwarf[];
@@ -29,6 +29,8 @@ export interface CellView {
   classes: string[];
   /** The dwarf standing on the cell; when set, the grid draws it instead of glyph and tiny. */
   dwarf?: Dwarf;
+  /** How much of this cell a producing Device's Buffer level covers, bottom up: 0..1. */
+  fill?: number;
 }
 
 /** Pick a wear glyph: untouched → nearly dug out. */
@@ -67,13 +69,13 @@ export function cellView(lvl: LevelState, i: number, ctx: ViewContext): CellView
       v.title = `${MONSTERS[b.monster].name}: ${MONSTERS[b.monster].pun} Tap to fight.`;
       break;
     case 'device':
-      deviceCell(lvl, b, ctx, v);
+      deviceCell(lvl, b, ctx, v, i);
       break;
   }
   return v;
 }
 
-function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx: ViewContext, v: CellView): void {
+function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx: ViewContext, v: CellView, i: number): void {
   const g = lvl.def.theme.glyphs;
   const def = lvl.def.devices[b.device]!;
   const state = lvl.devices.value[b.device]!;
@@ -87,12 +89,13 @@ function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx:
   v.classes.push('cell-hardware');
   const model = getDeviceModel(def.model);
   const level = levelOf(ctx, def.model);
+  if (model.kind !== 'forge') v.fill = fillShare(lvl, def, i, (lvl.buffers.value[b.device] ?? 0) / bufferCap(model, level));
   if (b.role === 'collect') {
     if (model.kind === 'forge') v.glyph = g.spawn;
     else {
       const full = (lvl.buffers.value[b.device] ?? 0) >= bufferCap(model, level) - 1e-6;
       const auto = lvl.automated.value.includes(b.device);
-      v.glyph = full && !auto ? g.collectFull[Math.floor(ctx.frame / 4) % g.collectFull.length]! : g.collect;
+      v.glyph = g.collect;
       if (full && !auto) v.classes.push('cell-full');
       if (auto) v.tiny = '⟳';
     }
@@ -109,6 +112,16 @@ function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx:
   }
   const open = ctx.dialog;
   if (open?.kind === 'device' && open.depth === lvl.def.depth && open.device === b.device) v.classes.push('cell-selected');
+}
+
+/**
+ * The share of cell `i` that a Device's Buffer level covers. The level (`full`, clamped to 0..1)
+ * rises across the Device's whole footprint like a tank, bottom row first, so a cell's share comes
+ * from its row's place inside the Device and can be partial.
+ */
+function fillShare(lvl: LevelState, def: { y: number; h: number }, i: number, full: number): number {
+  const rowsBelow = def.y + def.h - 1 - Math.floor(i / lvl.def.width);
+  return Math.min(1, Math.max(0, full * def.h - rowsBelow));
 }
 
 /** How to draw the port's cell at column `x` of the top Wall (x is inside the port's stretch). */

@@ -76,6 +76,7 @@ function Cell({ lvl, i, ctx }: { lvl: LevelState; i: number; ctx: ViewContext })
       data-depth={depth}
       data-cell={i}
       className={v.classes.join(' ')}
+      style={v.fill === undefined ? undefined : ({ '--fill': v.fill } as CSSProperties)}
       title={v.title || undefined}
       onClick={() => tapCell(depth, i)}
     >
