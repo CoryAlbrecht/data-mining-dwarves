@@ -1,5 +1,5 @@
 import { batch } from '@preact/signals-react';
-import { DIG_CURVE, mineOrder, neighbor, strikeDamage, WALK_SECONDS } from '@dmd/shared';
+import { CLOCK, DIG_CURVE, mineOrder, neighbor, strikeDamage, WALK_SECONDS } from '@dmd/shared';
 import { dig, produceFor, reachGoal, updateDwarf, walkStep } from './actions.ts';
 import { walkHeldKey } from './keyboard.ts';
 import { dwarves, EXIT, isMinable, levelAt, levels, underExit, type Dwarf, type LevelState } from './world.ts';
@@ -97,7 +97,7 @@ export function startLoop(): () => void {
   const id = setInterval(() => {
     const now = performance.now();
     // Cap catch-up after a backgrounded tab; offline time is credited separately.
-    tick(Math.min(5, (now - last) / 1000) * SPEED);
+    tick(Math.min(CLOCK.maxCatchUpSeconds, (now - last) / 1000) * SPEED);
     last = now;
   }, TICK_MS);
   return () => clearInterval(id);

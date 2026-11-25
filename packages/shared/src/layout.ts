@@ -1,3 +1,4 @@
+import { rockSize } from './digging.ts';
 import { NETWORK_TECHS } from './network.ts';
 
 /**
@@ -30,7 +31,36 @@ export const LAYOUT = {
   /** Rows at the top / bottom kept free of Devices (fork() sits in the bottom ones). */
   clearTop: 1,
   clearBottom: 2,
+  /** Chance fork() sits in the bottom-left corner (otherwise bottom-right). */
+  forkLeftChance: 0.5,
+  /** Columns of the bottom Wall the Entry can take (any under fork() are skipped). */
+  entryColumns: [2, 3, 4, 5],
+  /** A buried Device holds one rock's bytes for every this many cells of footprint, rounded up. */
+  deviceCellsPerRock: 2,
 } as const;
+
+/** Seed of the Mine at `depth`: every random choice in it comes from mulberry32(seed). */
+export function mineSeed(depth: number): number {
+  return (depth * 2654435761) >>> 0;
+}
+
+/**
+ * Seed of the port's own random stream. Keeping the port's position apart means retuning holes,
+ * rocks or loot never moves it under a saved Mine.
+ */
+export function portSeed(seed: number): number {
+  return seed ^ 0x9e3779b9;
+}
+
+/** Bytes in a buried Device of footprint w×h at rock Level `level`. Bigger masses take more diggers. */
+export function buriedDeviceSize(level: number, w: number, h: number): number {
+  return rockSize(level) * Math.ceil((w * h) / LAYOUT.deviceCellsPerRock);
+}
+
+/** Bytes in a Network/USB port `width` cells wide at rock Level `level`. */
+export function portSize(level: number, width: number): number {
+  return rockSize(level) * width;
+}
 
 /** Width of the Network/USB port's stretch of top Wall: 2 on computer 1, 3 on 2, then 4. */
 export function portWidth(computer: number): number {

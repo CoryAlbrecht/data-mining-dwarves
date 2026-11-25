@@ -157,6 +157,8 @@ export const ECONOMY = {
   outputGrowth: 1.5,
   /** A device's uncollected buffer holds this many seconds of output. */
   bufferSeconds: 300,
+  /** Collecting does nothing below this many bytes in the Buffer. */
+  minCollect: 0.5,
   /** Dwarf n (0-based count already bought) costs round(dwarfBase · dwarfGrowth^n) bytes. */
   dwarfBase: 50,
   dwarfGrowth: 1.25,

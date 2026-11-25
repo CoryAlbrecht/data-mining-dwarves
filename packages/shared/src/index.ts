@@ -8,3 +8,4 @@ export * from './rng.ts';
 export * from './computers.ts';
 export * from './layout.ts';
 export * from './loot.ts';
+export * from './clock.ts';

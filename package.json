@@ -2,7 +2,7 @@
   "name": "data-mining-dwarves",
   "version": "0.1.0",
   "private": true,
-  "description": "Data Mining Dwarves \u2014 an idle dig-and-merge game where dwarves mine data for ever-better chips.",
+  "description": "Data Mining Dwarves — an idle dig-and-merge game where dwarves mine data for ever-better chips.",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -14,14 +14,17 @@
   "scripts": {
     "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev -w @dmd/server\" \"npm run dev -w @dmd/client\"",
     "build": "npm run typecheck && npm run build -w @dmd/client",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc -p scripts",
     "test": "vitest run",
     "preview": "npm run preview -w @dmd/client",
-    "fonts:unifont": "python3 -I scripts/build-unifont.py"
+    "fonts:unifont": "python3 -I scripts/build-unifont.py",
+    "formulas": "tsx scripts/formulas.ts",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "concurrently": "^10.0.7",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.1.1"
   }

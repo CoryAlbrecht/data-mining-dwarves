@@ -1,0 +1,4 @@
+#!/bin/sh
+# Blocks the commit if typecheck or tests fail. Wired up by `npm install` (the prepare script).
+npm run typecheck || exit 1
+npm test || exit 1

@@ -1,4 +1,5 @@
 import { batch, effect } from '@preact/signals-react';
+import { CLOCK } from '@dmd/shared';
 import { ensureStartingDwarf, loadLevel, produceFor, say } from './actions.ts';
 import {
   bytes,
@@ -14,7 +15,6 @@ import {
 import { formatBytes } from '../game/format.ts';
 
 const KEY = 'dmd-save-v5'; // v5: walls, multi-cell Devices, holes
-const MAX_OFFLINE_SECONDS = 8 * 60 * 60;
 
 interface SaveFile {
   bytes: number;
@@ -76,7 +76,7 @@ export async function initPersistence(): Promise<void> {
     for (const saved of [...save.levels].sort((a, b) => a.depth - b.depth)) {
       if (!(await loadLevel(saved.depth, saved))) break;
     }
-    const away = Math.min(MAX_OFFLINE_SECONDS, (Date.now() - save.savedAt) / 1000);
+    const away = Math.min(CLOCK.maxOfflineSeconds, (Date.now() - save.savedAt) / 1000);
     const before = bytes.value;
     produceFor(away);
     const gained = bytes.value - before;

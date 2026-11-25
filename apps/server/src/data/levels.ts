@@ -1,4 +1,5 @@
 import {
+  buriedDeviceSize,
   byteLoot,
   chipCount,
   CRON_CHIP,
@@ -6,18 +7,26 @@ import {
   deviceFootprint,
   DUPLEX_CHIP,
   encryptedChipCount,
+  encryptedChipPool,
   FORGE_ID,
   FORK_FOOTPRINT,
   hardwareFor,
   holeChance,
   LAYOUT,
+  LOOT,
   lootKind,
   MINE_HEIGHT,
   MINE_WIDTH,
+  mineSeed,
+  monsterChance,
+  monsterFor,
+  MONSTER_SPAWN,
   MONSTERS,
   mulberry32,
   NETWORK_TECHS,
   placeOf,
+  portSeed,
+  portSize,
   portWidth,
   rockLevelCounts,
   rockMedian,
@@ -30,7 +39,6 @@ import {
   type LevelGlyphs,
   type LevelTheme,
   type Loot,
-  type MonsterId,
 } from '@dmd/shared';
 
 const W = MINE_WIDTH;
@@ -75,8 +83,6 @@ const CLASSIC_THEMES: Omit<LevelTheme, 'style' | 'glyphs'>[] = [
   { name: 'The Deep Web', palette: { rock: '#4b4566', rockDark: '#2c2840', accent: '#c58bff' } },
 ];
 
-const MONSTER_BY_DEPTH: MonsterId[] = ['bug', 'worm', 'troll', 'phisher', 'kernel-panic'];
-
 /** The first computer is a green-phosphor terminal. TODO(cga): CGA 8-color text for computer 2. */
 function themeFor(computer: number, index: number): LevelTheme {
   if (computer === 0) return { ...CRT_THEMES[index % CRT_THEMES.length]!, style: 'crt', glyphs: CRT_GLYPHS };
@@ -90,7 +96,7 @@ const idx = (x: number, y: number) => y * W + x;
  * loot never moves the port under a saved Mine.
  */
 function portX(seed: number, width: number): number {
-  return Math.floor(mulberry32(seed ^ 0x9e3779b9)() * (W - width + 1));
+  return Math.floor(mulberry32(portSeed(seed))() * (W - width + 1));
 }
 
 /**
@@ -115,7 +121,7 @@ function placeDevice(blocks: Block[], d: DeviceDef) {
  * leaderboard runs comparable and lets the client cache Mines offline.
  */
 export function generateLevel(depth: number): LevelDef {
-  const seed = (depth * 2654435761) >>> 0;
+  const seed = mineSeed(depth);
   const rand = mulberry32(seed);
   const pick = <T>(xs: readonly T[]): T => xs[Math.floor(rand() * xs.length)]!;
   const shuffle = <T>(xs: T[]): T[] => {
@@ -133,7 +139,7 @@ export function generateLevel(depth: number): LevelDef {
   const devices: DeviceDef[] = [];
 
   // 1. fork(): a 2×2 in a bottom corner, uncovered from the start.
-  const forkLeft = rand() < 0.5;
+  const forkLeft = rand() < LAYOUT.forkLeftChance;
   const fork: DeviceDef = {
     id: 0,
     model: FORGE_ID,
@@ -148,7 +154,7 @@ export function generateLevel(depth: number): LevelDef {
   devices.push(fork);
 
   // 2. The Entry: a middle column of the bottom Wall, never under fork().
-  const entryCols = [2, 3, 4, 5].filter((x) => x < fork.x || x >= fork.x + fork.w);
+  const entryCols = LAYOUT.entryColumns.filter((x) => x < fork.x || x >= fork.x + fork.w);
   const entry = pick(entryCols);
 
   // 3. Producing Devices against the sides, alternating, spread out vertically
@@ -189,10 +195,10 @@ export function generateLevel(depth: number): LevelDef {
   }
 
   // 5. Monsters: scattered, never in the bottom 2 rows.
-  const monster = MONSTER_BY_DEPTH[Math.min(MONSTER_BY_DEPTH.length - 1, Math.floor(depth / 5))]!;
-  for (let y = 0; y < H - 2; y++) {
+  const monster = monsterFor(depth);
+  for (let y = 0; y < H - MONSTER_SPAWN.clearBottom; y++) {
     for (let x = 0; x < W; x++) {
-      if (!blocks[idx(x, y)] && rand() < 0.03 + Math.min(depth, 20) * 0.003) {
+      if (!blocks[idx(x, y)] && rand() < monsterChance(depth)) {
         blocks[idx(x, y)] = { kind: 'monster', monster, hp: MONSTERS[monster].hp };
       }
     }
@@ -225,13 +231,16 @@ export function generateLevel(depth: number): LevelDef {
   // Chips worth finding here: this Mine's producing Devices (most often), fork(), and network chips.
   const deviceIds = hardware.map((d) => d.id);
   const tech = startTech(place.computer);
-  const netChips = [NETWORK_TECHS[tech]!.id, ...(NETWORK_TECHS[tech + 1] && depth >= 2 ? [NETWORK_TECHS[tech + 1]!.id] : [])];
+  const netChips = [
+    NETWORK_TECHS[tech]!.id,
+    ...(NETWORK_TECHS[tech + 1] && depth >= LOOT.nextTechFromDepth ? [NETWORK_TECHS[tech + 1]!.id] : []),
+  ];
   // Encrypted bit-rocks: producing Devices twice as likely as fork() or a network chip.
-  const encryptedChips = [...deviceIds, ...deviceIds, FORGE_ID, ...netChips];
+  const encryptedChips = encryptedChipPool(deviceIds, FORGE_ID, netChips);
   const here = new Set(deviceIds);
   const otherChips = DEVICE_MODELS.filter((m) => {
     const local = hardware.find((d) => d.kind === m.kind);
-    return m.kind !== 'forge' && !here.has(m.id) && (!local || m.tier <= local.tier + 4);
+    return m.kind !== 'forge' && !here.has(m.id) && (!local || m.tier <= local.tier + LOOT.otherTierWindow);
   }).map((m) => m.id);
 
   const modelChips = (chip: string, level: number): Loot => ({ kind: 'chip', chip, count: chipCount(level, rand()) });
@@ -260,7 +269,7 @@ export function generateLevel(depth: number): LevelDef {
   for (const d of devices) {
     if (!d.buried) continue;
     d.level = second;
-    d.size = rockSize(second) * Math.ceil((d.w * d.h) / 2);
+    d.size = buriedDeviceSize(second, d.w, d.h);
   }
   const pw = portWidth(place.computer);
   const exit = {
@@ -268,7 +277,7 @@ export function generateLevel(depth: number): LevelDef {
     x: portX(seed, pw),
     width: pw,
     level: hardest,
-    size: rockSize(hardest) * pw,
+    size: portSize(hardest, pw),
   };
 
   return {

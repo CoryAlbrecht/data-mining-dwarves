@@ -1,5 +1,34 @@
 import type { MonsterDef, MonsterId } from './types.ts';
 
+/**
+ * Where Monsters appear. Each cell left over after holes (outside the bottom rows) becomes a
+ * Monster with chance base + perDepth · min(depth, depthCap); the kind steps up every
+ * depthsPerKind Mines along MONSTER_BY_DEPTH.
+ */
+export const MONSTER_SPAWN = {
+  base: 0.03,
+  perDepth: 0.003,
+  depthCap: 20,
+  depthsPerKind: 5,
+  /** Rows at the bottom of a Mine that never hold a Monster. */
+  clearBottom: 2,
+} as const;
+
+export const MONSTER_BY_DEPTH: readonly MonsterId[] = ['bug', 'worm', 'troll', 'phisher', 'kernel-panic'];
+
+/** HP one tap knocks off a Monster. */
+export const TAP_DAMAGE = 1;
+
+/** Chance that a free cell of the Mine at `depth` holds a Monster. */
+export function monsterChance(depth: number): number {
+  return MONSTER_SPAWN.base + Math.min(depth, MONSTER_SPAWN.depthCap) * MONSTER_SPAWN.perDepth;
+}
+
+/** Which Monster lives in the Mine at `depth`. */
+export function monsterFor(depth: number): MonsterId {
+  return MONSTER_BY_DEPTH[Math.min(MONSTER_BY_DEPTH.length - 1, Math.floor(depth / MONSTER_SPAWN.depthsPerKind))]!;
+}
+
 export const MONSTERS: Record<MonsterId, MonsterDef> = {
   bug: { glyph: 'ж', id: 'bug', name: 'Bug', pun: "It's not a feature.", hp: 6, bounty: 25 },
   worm: { glyph: '∿', id: 'worm', name: 'Worm', pun: 'Spreads itself thin.', hp: 10, bounty: 60 },

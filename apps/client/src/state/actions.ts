@@ -7,12 +7,14 @@ import {
   deviceRate,
   DUPLEX_CHIP,
   dwarfPrice,
+  ECONOMY,
   FORGE_ID,
   getDeviceModel,
   MONSTERS,
   NETWORK_TECHS,
   neighbor,
   portCapacity,
+  TAP_DAMAGE,
   type Block,
   type Direction,
   type Loot,
@@ -485,7 +487,7 @@ export function tapCell(depth: number, i: number) {
   if (!lvl || !b) return;
   if (b.kind === 'monster') {
     if (!lvl.exposed.value.has(i)) return;
-    if (b.hp > 1) setBlock(lvl, i, { ...b, hp: b.hp - 1 });
+    if (b.hp > TAP_DAMAGE) setBlock(lvl, i, { ...b, hp: b.hp - TAP_DAMAGE });
     else {
       const m = MONSTERS[b.monster];
       earn(m.bounty);
@@ -530,7 +532,7 @@ export function useDevice(depth: number, id: number) {
 export function collect(depth: number, id: number) {
   const lvl = levelAt(depth);
   const amount = lvl?.buffers.value[id] ?? 0;
-  if (!lvl || amount < 0.5) return;
+  if (!lvl || amount < ECONOMY.minCollect) return;
   batch(() => {
     earn(amount);
     const next = lvl.buffers.value.slice();

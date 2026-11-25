@@ -7,9 +7,10 @@ Every formula and tunable number in the game, as the code has it today. Terms ar
   stale. Fix it in the same change.
 - **One home for numbers.** `DESIGN.md` describes the rules in words. The equations and constants
   live here.
-- **Worked tables come from the real functions.** They were produced by running
-  `packages/shared` itself, so re-run them after retuning
-  (`npx tsx` on a short script that imports `packages/shared/src/index.ts`).
+- **Every table is generated.** Each table under a `<!-- id -->` marker comes from
+  [`scripts/formulas.ts`](../scripts/formulas.ts), which runs the real game code, and `npm test`
+  fails if any of them drifts. After retuning, run `npm run formulas` and paste the changed tables
+  over the old ones.
 
 Notation: `^` is a power, `·` is multiplication, `U(a–b)` is a uniform random draw between a and b,
 and `ceil`, `floor`, `round` round as usual. "Depth" is a Mine's global number, counted from 1. "C1"
@@ -21,8 +22,9 @@ is the first Computer.
 
 Source: `DIG_CURVE` in [`digging.ts`](../packages/shared/src/digging.ts).
 
+<!-- dig-curve -->
 | Constant | Value | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `baseRockSize` | 120 B | Size of a Level 1 bit-rock |
 | `baseSeconds` | 30 s | Time for an L1 dwarf to dig a Level 1 rock alone |
 | `rockGrowth` | 1.6 | Size multiplier per rock Level |
@@ -35,8 +37,9 @@ Source: `DIG_CURVE` in [`digging.ts`](../packages/shared/src/digging.ts).
 rockSize(r) = round(120 · 1.6^(r−1))        r = the bit-rock's Level
 ```
 
+<!-- rock-size -->
 | r | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 15 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | bytes | 120 | 192 | 307 | 492 | 786 | 1,258 | 2,013 | 3,221 | 5,154 | 8,246 | 21,111 | 86,469 |
 
 ### Strike damage
@@ -45,8 +48,9 @@ rockSize(r) = round(120 · 1.6^(r−1))        r = the bit-rock's Level
 strikeDamage(d) = (120 / 30) · 1.5^(d−1) = 4 · 1.5^(d−1) bytes per Strike     d = dwarf Level
 ```
 
+<!-- strike -->
 | d | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B/Strike | 4 | 6 | 9 | 13.5 | 20.25 | 30.38 | 45.56 | 68.34 | 102.52 |
 
 Damage can be fractional. The rock's remaining size is tracked exactly.
@@ -72,8 +76,9 @@ time ≈ remaining bytes / Σ strikeDamage(dᵢ)       (in whole Strikes)
 
 ### Dig time grid (one dwarf, seconds)
 
+<!-- dig-grid -->
 | Dwarf \ Rock | L1 | L2 | L3 | L4 | L5 | L6 | L7 | L8 | L9 | L10 |
-|---|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **L1** | 30 | 48 | 77 | 123 | 197 | 315 | 504 | 806 | 1,289 | 2,062 |
 | **L2** | 20 | 32 | 52 | 82 | 131 | 210 | 336 | 537 | 859 | 1,375 |
 | **L3** | 14 | 22 | 35 | 55 | 88 | 140 | 224 | 358 | 573 | 917 |
@@ -133,8 +138,9 @@ dwarfPrice(n) = round(50 · 1.25^n) bytes       n = dwarves already bought on th
   doesn't depend on that Level.
 - The purchase is refused, before you pay, if no free cell is reachable near the Entry.
 
+<!-- fork-price -->
 | Dwarf # | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Price | 50 | 63 | 78 | 98 | 122 | 153 | 191 | 238 | 298 | 373 | 466 | 582 | 728 | 909 | 1,137 |
 | Running total | 50 | 113 | 191 | 289 | 411 | 564 | 755 | 993 | 1,291 | 1,664 | 2,130 | 2,712 | 3,440 | 4,349 | 5,486 |
 
@@ -153,8 +159,9 @@ computerLength(c) = 2^(c+2) Mines        c = 0-based Computer number
 This is a placeholder: the real rule is still to be decided, apart from always being a power of
 two.
 
+<!-- computer-length -->
 | Computer | C1 | C2 | C3 | C4 | C5 |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | Mines | 4 | 8 | 16 | 32 | 64 |
 | Depths | 1–4 | 5–12 | 13–28 | 29–60 | 61–124 |
 
@@ -185,8 +192,9 @@ and `rockLevelCounts` in [`layout.ts`](../packages/shared/src/layout.ts).
 
 ### Median Level per Mine
 
+<!-- rock-curve -->
 | Constant | Value | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `firstMedian` | 1 | Median of the very first Mine |
 | `perMine` | 0.5 | Rise per Mine within a Computer |
 | `handover` | 0.25 | A new Computer starts this far up the last one's first-to-last rise |
@@ -200,12 +208,13 @@ rockMedian  = start(c) + index · 0.5
 The handover adds up: each Computer's start = the previous start + a quarter of the previous
 Computer's rise.
 
+<!-- medians -->
 | Computer | First Mine median | Last Mine median |
-|---|---|---|
+| --- | --- | --- |
 | C1 (depths 1–4) | 1 | 2.5 |
-| C2 (5–12) | 1.375 | 4.875 |
-| C3 (13–28) | 2.25 | 9.75 |
-| C4 (29–60) | 4.125 | 19.625 |
+| C2 (depths 5–12) | 1.375 | 4.875 |
+| C3 (depths 13–28) | 2.25 | 9.75 |
+| C4 (depths 29–60) | 4.125 | 19.625 |
 
 ### Level spread
 
@@ -230,14 +239,15 @@ w(L)  = (1 − share) · BELL centred on low  +  share · BELL centred on low+1
 
 Example spreads for a Mine of 60 rocks (Level: count):
 
+<!-- spreads -->
 | Median | Spread |
-|---|---|
+| --- | --- |
 | 1 | 1: 41, 2: 15, 3: 4 |
 | 1.5 | 1: 30, 2: 19, 3: 9, 4: 2 |
 | 2 | 1: 19, 2: 22, 3: 15, 4: 4 |
 | 2.5 (C1 last) | 1: 11, 2: 19, 3: 19, 4: 9, 5: 2 |
-| 4.9 (C2 last) | 3: 5, 4: 16, 5: 22, 6: 14, 7: 3 |
-| 9.8 (C3 last) | 7: 1, 8: 6, 9: 16, 10: 21, 11: 13, 12: 3 |
+| 4.875 (C2 last) | 3: 5, 4: 16, 5: 22, 6: 14, 7: 3 |
+| 9.75 (C3 last) | 7: 1, 8: 6, 9: 17, 10: 21, 11: 12, 12: 3 |
 
 ### Placement
 
@@ -251,9 +261,12 @@ Example spreads for a Mine of 60 rocks (Level: count):
 ```
 hardest = the highest Level on the curve,  second = the next one down (or hardest if only one)
 
-buried Device:  Level = second,   size = rockSize(second) · ceil(w·h / 2)
-port / USB:     Level = hardest,  size = rockSize(hardest) · portWidth(c)
+buried Device:  Level = second,   size = buriedDeviceSize = rockSize(second) · ceil(w·h / 2)
+port / USB:     Level = hardest,  size = portSize        = rockSize(hardest) · portWidth(c)
 ```
+
+Source: `buriedDeviceSize`, `portSize` and `LAYOUT.deviceCellsPerRock` in
+[`layout.ts`](../packages/shared/src/layout.ts).
 
 Bigger masses hold proportionally more bytes because more dwarves can dig them at once. For
 example, a C1 Device (2×2) is 2 rocks' worth, a C3 Device (3×3) is 5, and a C3 port is 4.
@@ -268,18 +281,22 @@ Source: `LAYOUT` and `holeChance` in [`layout.ts`](../packages/shared/src/layout
 ### Seeds and random streams
 
 ```
-seed      = (depth · 2654435761) mod 2^32
+seed      = mineSeed(depth)  = (depth · 2654435761) mod 2^32
 rand      = mulberry32(seed)                      (everything except the port's position)
-portX     = floor(mulberry32(seed XOR 0x9E3779B9)() · (8 − portWidth + 1))
+portX     = floor(mulberry32(portSeed(seed))() · (8 − portWidth + 1))
+portSeed  = seed XOR 0x9E3779B9
 ```
 
 The port has its own stream, so retuning the generator never moves it. Any change to what a depth
 generates must bump `GENERATOR_VERSION` (now 4), because the service worker caches Mines forever.
+A fingerprint test (`apps/server/src/data/levels.test.ts`) over depths 1–200 fails until it does.
 
 ### fork(), Entry and Devices
 
-- **fork()** goes in the bottom-left or bottom-right corner, 50/50.
-- **Entry column** is picked evenly from columns 2–5 (0-based), leaving out any under fork().
+- **fork()** goes in the bottom-left corner with `LAYOUT.forkLeftChance = 0.5`, otherwise the
+  bottom-right.
+- **Entry column** is picked evenly from `LAYOUT.entryColumns` = columns 2–5 (0-based), leaving
+  out any under fork().
 - **Producing Devices** alternate left and right walls (which side goes first is 50/50). They
   are spread evenly through the rows between `clearTop = 1` and `clearBottom = 2`:
 
@@ -297,25 +314,27 @@ bottom row, and every cell touching fork() (diagonals too): always a hole
 holeChance(r) = 0.60 + (0.12 − 0.60) · (r − 1) / 10      r = row from the bottom, 1…11
 ```
 
+<!-- holes -->
 | Row from bottom | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 (top) |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Hole chance | 100% | 60% | 55.2% | 50.4% | 45.6% | 40.8% | 36% | 31.2% | 26.4% | 21.6% | 16.8% | 12% |
 
 ### Monsters
 
-Each cell that isn't a Device or hole, outside the bottom 2 rows, becomes a Monster with this
-chance:
+Each cell that isn't a Device or hole, outside the bottom `clearBottom = 2` rows, becomes a
+Monster with this chance:
 
 ```
-P(monster) = 0.03 + 0.003 · min(depth, 20)        (3.3% at depth 1 → 9% from depth 20)
-kind       = MONSTER_BY_DEPTH[min(4, floor(depth / 5))]
+monsterChance(depth) = 0.03 + 0.003 · min(depth, 20)        (3.3% at depth 1 → 9% from depth 20)
+monsterFor(depth)    = MONSTER_BY_DEPTH[min(4, floor(depth / 5))]
 ```
 
-Every tap does 1 damage. The bounty is paid when HP reaches 0. Source: `MONSTERS` in
-[`monsters.ts`](../packages/shared/src/monsters.ts).
+Every tap does `TAP_DAMAGE = 1`. The bounty is paid when HP reaches 0. Source: `MONSTER_SPAWN`,
+`MONSTER_BY_DEPTH`, `TAP_DAMAGE` and `MONSTERS` in [`monsters.ts`](../packages/shared/src/monsters.ts).
 
+<!-- monsters -->
 | Depths | Monster | HP (taps) | Bounty |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1–4 | Bug | 6 | 25 B |
 | 5–9 | Worm | 10 | 60 B |
 | 10–14 | Forum Troll | 18 | 150 B |
@@ -333,8 +352,9 @@ Source: `LOOT` in [`loot.ts`](../packages/shared/src/loot.ts), and the loot pick
 
 One uniform roll picks the kind:
 
+<!-- loot-share -->
 | Kind | Share | Then picks |
-|---|---|---|
+| --- | --- | --- |
 | bytes | 55% | `byteLoot` below |
 | device | 24% | One of this Mine's producing Devices, evenly |
 | fork | 3% | fork() chips |
@@ -349,9 +369,10 @@ One uniform roll picks the kind:
 byteLoot(depth) = round(8 · 1.5^(depth−1) · U(0.5–1.5))
 ```
 
+<!-- byte-loot -->
 | Depth | 1 | 2 | 3 | 4 | 5 | 8 | 12 | 16 | 20 | 28 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Middle value | 8 | 12 | 18 | 27 | 41 | 137 | 692 | 3,503 | 17,734 | 454,521 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Middle value | 8 | 12 | 18 | 27 | 41 | 137 | 692 | 3,503 | 17,735 | 454,521 |
 
 Byte loot depends on **depth**, not on the rock's Level.
 
@@ -363,9 +384,10 @@ encryptedChipCount(r) = 3 · ceil(r / 3)                        no bonus chip
 Duplex and cron       = always 1
 ```
 
+<!-- chip-stacks -->
 | Rock Level | 1–3 | 4–6 | 7–9 | 10–12 | 13–15 |
-|---|---|---|---|---|---|
-| Ordinary stack | 1 (20%: 2) | 2 (3) | 3 (4) | 4 (5) | 5 (6) |
+| --- | --- | --- | --- | --- | --- |
+| Ordinary stack | 1 (20%: 2) | 2 (20%: 3) | 3 (20%: 4) | 4 (20%: 5) | 5 (20%: 6) |
 | Encrypted stack | 3 | 6 | 9 | 12 | 15 |
 
 ### Encrypted bit-rocks
@@ -375,8 +397,9 @@ each rock at the hardest Level has encryptedShare = 25% chance to be encrypted
 (only if the Mine has more than one Level)
 ```
 
-The chip is picked from this list: each producing Device's chip twice, fork() once, and each
-network chip once. That makes a Device chip twice as likely as any one other chip.
+The chip is picked from `encryptedChipPool`: each producing Device's chip twice, fork() once, and
+each network chip once (`LOOT.encryptedWeights`). That makes a Device chip twice as likely as any
+one other chip.
 
 ---
 
@@ -393,8 +416,9 @@ deviceRate(model, L)  = baseRate · 1.5^(L−1) bytes per second  L = the model'
 bufferCap(model, L)   = deviceRate(model, L) · 300 s
 ```
 
+<!-- kind-rates -->
 | Kind | `kindRate` (B/s at tier 0, L1) | Ladder length |
-|---|---|---|
+| --- | --- | --- |
 | CPU | 1 | 12 |
 | DRAM | 0.6 | 12 |
 | Storage | 0.4 | 12 |
@@ -405,20 +429,23 @@ bufferCap(model, L)   = deviceRate(model, L) · 300 s
 - Output fills the Buffer up to its cap, then stops.
 - A cron job (1 chip, per Device) sends output straight to your bytes, with no cap.
 - Devices on every Mine in the Chain keep producing, buried ones excepted.
-- Collecting needs at least 0.5 B in the Buffer.
+- Collecting needs at least `ECONOMY.minCollect = 0.5` B in the Buffer.
 
+<!-- device-output -->
 | Model | Tier | L1 B/s | L5 B/s | L10 B/s | Buffer at L1 |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 4004 CPU | 0 | 1 | 5.06 | 38.44 | 300 B |
 | Z80 CPU | 3 | 8 | 40.5 | 307.55 | 2,400 B |
-| 80386 CPU | 6 | 64 | 324 | 2,460 | 19,200 B |
+| 80386 CPU | 6 | 64 | 324 | 2,460.38 | 19,200 B |
 | 1 kB DRAM | 0 | 0.6 | 3.04 | 23.07 | 180 B |
-| 16 kB DRAM | 3 | 4.8 | 24.3 | 184.5 | 1,440 B |
-| 640 kB DRAM | 6 | 38.4 | 194.4 | 1,476 | 11,520 B |
-| 8″ 80 kB Floppy | 0 | 0.4 | 2.02 | 15.38 | 120 B |
-| 10 MB Hard Drive | 6 | 25.6 | 129.6 | 984 | 7,680 B |
+| 16 kB DRAM | 3 | 4.8 | 24.3 | 184.53 | 1,440 B |
+| 640 kB DRAM | 6 | 38.4 | 194.4 | 1,476.23 | 11,520 B |
+| 8″ 80 kB Floppy | 0 | 0.4 | 2.03 | 15.38 | 120 B |
+| 5¼″ 360 kB Floppy | 3 | 3.2 | 16.2 | 123.02 | 960 B |
+| 10 MB Hard Drive | 6 | 25.6 | 129.6 | 984.15 | 7,680 B |
 | 2 kB VRAM | 0 | 0.8 | 4.05 | 30.75 | 240 B |
-| 1 MB SVGA VRAM | 6 | 51.2 | 259.2 | 1,968 | 15,360 B |
+| 64 kB VRAM | 3 | 6.4 | 32.4 | 246.04 | 1,920 B |
+| 1 MB SVGA VRAM | 6 | 51.2 | 259.2 | 1,968.3 | 15,360 B |
 
 ### Upgrade cost
 
@@ -428,8 +455,9 @@ The same curve serves Device models, fork() and Network ports:
 chipsToUpgrade(L) = ceil(2 · 1.5^(L−1))       chips to go from Level L to L+1
 ```
 
+<!-- upgrade-cost -->
 | To Level | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Chips | 2 | 3 | 5 | 7 | 11 | 16 | 23 | 35 | 52 | 77 | 116 | 173 |
 | Running total from L1 | 2 | 5 | 10 | 17 | 28 | 44 | 67 | 102 | 154 | 231 | 347 | 520 |
 
@@ -443,25 +471,27 @@ VRAM          = only from C1's 3rd Mine on; on C1 its tier is 1 lower than the f
 tier is clamped to the ladder's last model
 ```
 
+<!-- part-pace -->
 | Part (`PART_PACE`) | `perLevel` | `keep` |
-|---|---|---|
+| --- | --- | --- |
 | DRAM | 1 | 0.75 |
 | Storage | 0.75 | 0.5 |
 | VRAM | 0.5 | 0.5 |
 
 The CPU rolls so far give the 4004 on C1, the Z80 on C2, the 80386 on C3 and the Pentium Pro on C4.
 
+<!-- hardware -->
 | Depth | Place | CPU | DRAM | Storage | VRAM |
-|---|---|---|---|---|---|
-| 1 | C1 #1 | 4004 | 1 kB | 8″ 80 kB | n/a |
-| 3 | C1 #3 | 4004 | 8 kB | 8″ 250 kB | 2 kB |
-| 4 | C1 #4 | 4004 | 16 kB | 5¼″ 160 kB | 2 kB |
-| 5 | C2 #1 | Z80 | 8 kB | 8″ 250 kB | 2 kB |
-| 12 | C2 #8 | Z80 | 16 MB | 10 MB HDD | 64 kB |
-| 13 | C3 #1 | 80386 | 1 MB | 5¼″ 360 kB | 4 kB MDA |
-| 17 | C3 #5 | 80386 | 256 MB (ladder end) | 10 MB HDD | 64 kB |
-| 24 | C3 #12 | 80386 | 256 MB | 1 GB HDD (ladder end) | 1 MB SVGA |
-| 28 | C3 #16 | 80386 | 256 MB | 1 GB HDD | 4 MB |
+| --- | --- | --- | --- | --- | --- |
+| 1 | C1 #1 | 4004 CPU | 1 kB DRAM | 8″ 80 kB Floppy | n/a |
+| 3 | C1 #3 | 4004 CPU | 8 kB DRAM | 8″ 250 kB Floppy | 2 kB VRAM |
+| 4 | C1 #4 | 4004 CPU | 16 kB DRAM | 5¼″ 160 kB Floppy | 2 kB VRAM |
+| 5 | C2 #1 | Z80 CPU | 8 kB DRAM | 8″ 250 kB Floppy | 2 kB VRAM |
+| 12 | C2 #8 | Z80 CPU | 16 MB DRAM | 10 MB Hard Drive | 64 kB VRAM |
+| 13 | C3 #1 | 80386 CPU | 1 MB DRAM | 5¼″ 360 kB Floppy | 4 kB MDA VRAM |
+| 17 | C3 #5 | 80386 CPU | 256 MB DRAM (ladder end) | 10 MB Hard Drive | 64 kB VRAM |
+| 24 | C3 #12 | 80386 CPU | 256 MB DRAM (ladder end) | 1 GB Hard Drive (ladder end) | 1 MB SVGA VRAM |
+| 28 | C3 #16 | 80386 CPU | 256 MB DRAM (ladder end) | 1 GB Hard Drive (ladder end) | 4 MB VRAM |
 
 ---
 
@@ -477,14 +507,16 @@ portCapacity(L) = floor(L / 2) + 1        dwarves through the port at the same t
 
 A dwarf that comes back up through the Entry (with duplex) frees its place.
 
+<!-- port-capacity -->
 | Port Level | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 |
-|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Capacity | 1 | 2 | 2 | 3 | 3 | 4 | 5 | 6 |
 
 ### Technology
 
+<!-- network-techs -->
 | # | Technology | Highest dwarf it carries | Speed label |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 0 | Serial Port | L4 | 300 baud → 115.2 kbps across Levels 1–8 |
 | 1 | 1 Mb Ethernet | L5 | 1 Mbps |
 | 2 | 2 Mb Token Ring | L6 | 2 Mbps |
@@ -516,12 +548,14 @@ The next Computer's Rock curve starts at the handover median (§4), and its hard
 
 ## 10. Time
 
+<!-- time -->
 | What | Value | Source |
-|---|---|---|
+| --- | --- | --- |
 | Game tick | 100 ms | `TICK_MS` in `apps/client/src/state/loop.ts` |
-| Catch-up per tick after a backgrounded tab | at most 5 s | `startLoop` in `loop.ts` |
-| Offline production credited on load | at most 8 h | `MAX_OFFLINE_SECONDS` in `apps/client/src/state/persistence.ts` |
-| Dev fast-forward | `?speed=N` multiplies every tick | `SPEED` in `loop.ts` |
+| Catch-up per tick after a backgrounded tab | at most 5 s | `CLOCK.maxCatchUpSeconds` in `packages/shared/src/clock.ts` |
+| Offline production credited on load | at most 8 h | `CLOCK.maxOfflineSeconds` in `packages/shared/src/clock.ts` |
+| Collect minimum | 0.5 B | `ECONOMY.minCollect` in `packages/shared/src/devices.ts` |
+| Dev fast-forward | `?speed=N` multiplies every tick | `SPEED` in `apps/client/src/state/loop.ts` |
 
 Offline time credits only Device output (Buffers up to their caps, cron jobs in full). Dwarves
 don't dig while the game is closed.

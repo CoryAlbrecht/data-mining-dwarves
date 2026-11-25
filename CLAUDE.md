@@ -3,22 +3,16 @@
 A parody idle dig-and-merge game with roguelike touches. Theme: dwarves "data mining" for chips.
 Puns are encouraged everywhere: chip names, monsters, level themes, UI copy.
 
-- The game design is in `docs/DESIGN.md`. Read it before changing game rules, and update it when
-  the rules change.
-- Every formula and tunable number is written down in `docs/FORMULAS.md`. Update it in the same
-  change when a curve or constant in `packages/shared` (or the Mine generator) changes.
+- Game rules: `docs/DESIGN.md`. Read it before changing a rule.
+- Formulas and tunable numbers: `docs/FORMULAS.md`; the code for them lives in `packages/shared`.
+- Review rules (doc sync, where tunables go, generator determinism, signals, imports):
+  `CODING_STANDARDS.md`.
 - Monorepo using npm workspaces: `apps/client` (React+Vite PWA), `apps/server` (Hono), `packages/shared`.
 - Keep all names, art and level designs original. The game shares genre mechanics with other idle
   mining games but must not copy their names, characters, art or look.
 - In-game currency only. Never add a real-money purchase path.
-- Client state follows the signals rules in README.md. Don't add `useState` or `useEffect` for game
-  logic.
-- Put game rules and tunable curves (dig time, chip costs, device output, port capacity) in
-  `packages/shared`, not in the client or server.
-- Level generation is deterministic per depth (`apps/server/src/data/levels.ts`). Keep it that way:
-  the service worker caches levels forever.
-- Imports use explicit `.ts`/`.tsx` extensions.
-- Verify with: `npm run typecheck && npm test && npm run build`.
+- Verify with: `npm run typecheck && npm test && npm run build`. The pre-commit hook runs the first
+  two.
 - CRT levels use the font stack retro face → `DMD Unifont` (chunked, `scripts/build-unifont.py`) →
   Noto Emoji. Any Unicode character is fine in glyph levels.
 - Playtest with `?speed=N` in dev, or headless: `google-chrome --headless=new --virtual-time-budget=…`.
