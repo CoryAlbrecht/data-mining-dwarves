@@ -141,7 +141,7 @@ describe('cellView: Devices', () => {
     const lvl = uncovered();
     lvl.buffers.value = [12];
     const levels = { 'cpu:4004-cpu': 3 };
-    expect(cellView(lvl, 6, ctx({ deviceLevels: levels }))).toEqual({
+    expect(cellView(lvl, 6, ctx({ deviceLevels: levels }))).toMatchObject({
       glyph: '⇩', tiny: null, title: 'Collect 12 B', classes: ['cell', 'cell-device', 'cell-lit', 'cell-hardware'],
     });
     expect(cellView(lvl, 7, ctx({ deviceLevels: levels }))).toMatchObject({
@@ -153,11 +153,13 @@ describe('cellView: Devices', () => {
     expect(cellView(lvl, 3, ctx()).glyph).toBe('4004');
   });
 
-  it('swaps the full Collect button through the Theme glyphs by frame and pulses it', () => {
+  it('pulses the full Collect button with its usual glyph, whatever the frame', () => {
     const lvl = uncovered();
+    lvl.buffers.value = [bufferCap(getDeviceModel('cpu:4004-cpu'), 1) - 1];
+    expect(cellView(lvl, 6, ctx()).classes).not.toContain('cell-full');
     lvl.buffers.value = [bufferCap(getDeviceModel('cpu:4004-cpu'), 1)];
-    expect(cellView(lvl, 6, ctx({ frame: 0 }))).toMatchObject({ glyph: '⇊', classes: expect.arrayContaining(['cell-full']) });
-    expect(cellView(lvl, 6, ctx({ frame: 4 })).glyph).toBe('⇓');
+    expect(cellView(lvl, 6, ctx({ frame: 0 }))).toMatchObject({ glyph: '⇩', classes: expect.arrayContaining(['cell-full']) });
+    expect(cellView(lvl, 6, ctx({ frame: 4 }))).toEqual(cellView(lvl, 6, ctx({ frame: 0 })));
   });
 
   it('marks an automated Device ⟳ and never as full', () => {
@@ -179,6 +181,49 @@ describe('cellView: Devices', () => {
   it('never highlights a Device: the view takes no open dialog', () => {
     const lvl = uncovered();
     for (const i of [2, 3, 6, 7]) expect(cellView(lvl, i, ctx()).classes.filter((c) => c.includes('selected'))).toEqual([]);
+  });
+});
+
+describe('cellView: Device fill', () => {
+  const cap = bufferCap(getDeviceModel('cpu:4004-cpu'), 1);
+  const fills = (lvl: LevelState) => [2, 3, 6, 7].map((i) => cellView(lvl, i, ctx()).fill);
+
+  it('leaves every cell of a Device with an empty Buffer unfilled', () => {
+    const lvl = uncovered();
+    lvl.buffers.value = [0];
+    expect(fills(lvl)).toEqual([0, 0, 0, 0]);
+  });
+
+  it('fills every cell of a Device with a full Buffer, even past the cap', () => {
+    const lvl = uncovered();
+    lvl.buffers.value = [cap];
+    expect(fills(lvl)).toEqual([1, 1, 1, 1]);
+    lvl.buffers.value = [cap * 2];
+    expect(fills(lvl)).toEqual([1, 1, 1, 1]);
+  });
+
+  it('fills a two-row Device bottom row first, sharing the level between its rows', () => {
+    const lvl = uncovered(); // cells 2, 3 on top; 6, 7 below
+    lvl.buffers.value = [cap / 4];
+    expect(fills(lvl)).toEqual([0, 0, 0.5, 0.5]);
+    lvl.buffers.value = [cap / 2];
+    expect(fills(lvl)).toEqual([0, 0, 1, 1]);
+    lvl.buffers.value = [(cap * 3) / 4];
+    expect(fills(lvl)).toEqual([0.5, 0.5, 1, 1]);
+  });
+
+  it('fills an automated Device too', () => {
+    const lvl = uncovered();
+    lvl.buffers.value = [cap / 2];
+    lvl.automated.value = [0];
+    expect(fills(lvl)).toEqual([0, 0, 1, 1]);
+  });
+
+  it('never fills fork(), which is not a producing Device, nor a buried Device', () => {
+    expect(fills(uncovered('fork'))).toEqual([undefined, undefined, undefined, undefined]);
+    const lvl = makeLevelState(fixture());
+    lvl.buffers.value = [cap];
+    expect([6, 7].map((i) => cellView(lvl, i, ctx()).fill)).toEqual([undefined, undefined]);
   });
 });
 
