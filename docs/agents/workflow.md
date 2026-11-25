@@ -36,7 +36,9 @@ The label on a PR says whose move it is (see `triage-labels.md`). A session has 
 the session that opened a PR or pushed to it never reviews it.
 
 1. **Author**: run `/code-review` on the branch as a self-check, push, open the PR with
-   `Closes #n` in the body (one line per closed issue), and label it `ready-for-agent`.
+   `Closes #n` in the body (one line per closed issue), and label it `ready-for-agent`. The
+   branch now lives at `origin`, so remove your worktree and its local branch, then stop.
+   `/implement` and `/implement-spec` do all of this.
 2. **Reviewer** (`/review-pr`): check the PR out in your own worktree and run
    `npm run typecheck && npm test && npm run build` (plus CI once it exists). Post a PR comment
    whose first line is exactly `Verdict: approve` or `Verdict: changes requested`, followed by the
