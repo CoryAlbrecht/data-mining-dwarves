@@ -1,7 +1,7 @@
 import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block } from '@dmd/shared';
-import { deviceLabels, portLabels } from '../components/hardware.ts';
-import { EXIT, type Dwarf, type LevelState } from '../state/world.ts';
+import { EXIT, levelIn, type Dwarf, type LevelState } from '../state/world.ts';
 import { formatBytes, formatDuration } from './format.ts';
+import { deviceLabels, portLabels } from './labels.ts';
 
 /**
  * The rest of the world a cell's look depends on, passed in so the cell-view functions stay pure.
@@ -15,8 +15,8 @@ export interface ViewContext {
 }
 
 /**
- * What to draw in one Mine cell or one port cell of the top Wall. The grid renders only this.
- * Later display additions (dig-bar fraction, Device fill, label text, corner mark) join here.
+ * What to draw in one Mine cell or one port cell of the top Wall. The grid renders only this:
+ * glyph and corner marks, label text, Device fill and the dig bar all come from here.
  */
 export interface CellView {
   glyph: string;
@@ -46,8 +46,6 @@ function worn(glyphs: readonly string[], remaining: number, size: number): strin
 /** Whether any dwarf in this Mine is digging a target that `hit` accepts (a cell number or EXIT). */
 const beingDug = (lvl: LevelState, ctx: ViewContext, hit: (target: number) => boolean) =>
   ctx.dwarves.some((d) => d.depth === lvl.def.depth && d.target !== null && hit(d.target));
-
-const levelOf = (ctx: ViewContext, model: string) => ctx.deviceLevels[model] ?? 1;
 
 /** How to draw Mine cell `i`. */
 export function cellView(lvl: LevelState, i: number, ctx: ViewContext): CellView {
@@ -103,18 +101,20 @@ function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx:
   }
   v.classes.push('cell-hardware');
   const model = getDeviceModel(def.model);
-  const level = levelOf(ctx, def.model);
-  if (model.kind !== 'forge') v.fill = fillShare(lvl, def, i, (lvl.buffers.value[b.device] ?? 0) / bufferCap(model, level));
+  const level = levelIn(ctx.deviceLevels, def.model);
+  const buffer = lvl.buffers.value[b.device] ?? 0;
+  const cap = bufferCap(model, level);
+  if (model.kind !== 'forge') v.fill = fillShare(lvl, def, i, buffer / cap);
   if (b.role === 'collect') {
     if (model.kind === 'forge') v.glyph = g.spawn;
     else {
-      const full = (lvl.buffers.value[b.device] ?? 0) >= bufferCap(model, level) - 1e-6;
+      const full = buffer >= cap - 1e-6;
       const auto = lvl.automated.value.includes(b.device);
       v.glyph = g.collect;
       if (full && !auto) v.classes.push('cell-full');
       if (auto) v.tiny = '⟳';
     }
-    v.title = model.kind === 'forge' ? 'Spawn a dwarf' : `Collect ${formatBytes(lvl.buffers.value[b.device] ?? 0)}`;
+    v.title = model.kind === 'forge' ? 'Spawn a dwarf' : `Collect ${formatBytes(buffer)}`;
   } else if (b.role === 'upgrade') {
     v.glyph = g.upgrade;
     v.tiny = level;

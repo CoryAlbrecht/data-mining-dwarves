@@ -1,4 +1,4 @@
-import { getDeviceModel, NETWORK_TECHS, portCapacity, portSpeed, type DeviceKind, type PortState } from '@dmd/shared';
+import { getDeviceModel, NETWORK_TECHS, portCapacity, portSpeed, type DeviceKind, type NetworkTechId, type PortState } from '@dmd/shared';
 
 const KIND: Record<DeviceKind, string> = { cpu: 'CPU', dram: 'RAM', storage: 'DISK', vram: 'VID', forge: 'fork' };
 
@@ -33,7 +33,7 @@ export function deviceLabels(model: string, cells: number): string[] {
 }
 
 /** Short Port technology names for the port's label cells, by technology id. */
-const PORT_TECH_SHORT: Record<string, string> = {
+const PORT_TECH_SHORT: Record<NetworkTechId, string> = {
   'net:serial': 'RS-232',
   'net:ethernet-1m': '1Mb ETH',
   'net:token-ring-2m': 'TOKEN',
@@ -49,7 +49,7 @@ const PORT_TECH_SHORT: Record<string, string> = {
  */
 export function portLabels(port: PortState, cells: number): string[] {
   const tech = NETWORK_TECHS[port.tech]!;
-  const name = PORT_TECH_SHORT[tech.id] ?? tech.name;
+  const name = PORT_TECH_SHORT[tech.id];
   const use = `${port.passed}/${portCapacity(port.level)}`;
   const max = `≤L${tech.maxDwarfLevel}`;
   const out = cells <= 2 ? [name, `${use} ${max}`] : cells === 3 ? [name, use, max] : [name, portSpeed(port), use, max];
