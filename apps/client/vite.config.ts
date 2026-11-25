@@ -4,7 +4,12 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { LEVELS_CACHE } from '@dmd/shared';
 
+// Ports and cache dir can be moved, e.g. to run a second copy beside a developer's own `npm run dev`:
+// CLIENT_PORT (default 5173), API_PORT (where /api is proxied, default 8787), VITE_CACHE_DIR.
+const env = process.env;
+
 export default defineConfig({
+  ...(env.VITE_CACHE_DIR ? { cacheDir: env.VITE_CACHE_DIR } : {}),
   // The signals Babel transform injects `@preact/signals-react/runtime` imports that the dep scanner
   // can't see. Pre-bundle them up front, or Vite re-optimizes mid-load and the page can end up with
   // two copies of signals-core (components then never re-render, e.g. stuck on "No signal.").
@@ -64,6 +69,8 @@ export default defineConfig({
     }),
   ],
   server: {
-    proxy: { '/api': 'http://localhost:8787' },
+    port: Number(env.CLIENT_PORT ?? 5173),
+    strictPort: !!env.CLIENT_PORT, // a requested port that's taken is an error, not a silent move
+    proxy: { '/api': `http://localhost:${env.API_PORT ?? 8787}` },
   },
 });
