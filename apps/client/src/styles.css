@@ -107,6 +107,12 @@ button { font: inherit; color: inherit; }
 }
 .wall { color: var(--ink-dim); }
 .wall-port, .wall-entry { color: var(--ink); cursor: pointer; }
+/* A dug-out port's labels: the same small text as Device label cells, shrunk to fit a long label
+   (--chars) across the cell; and the duplex mark. */
+.wall .glyph.port-label {
+  transform: none; font-size: min(34cqh, calc(180cqw / var(--chars))); letter-spacing: -0.02em; white-space: nowrap; color: var(--ink);
+}
+.corner { position: absolute; top: 0; right: 1px; font-size: 25cqh; line-height: 1; color: var(--ink); }
 .wall-selected { animation: blink 1s steps(2) infinite; }
 
 .cell { cursor: pointer; color: var(--ink-dim); }
@@ -237,6 +243,7 @@ button { font: inherit; color: inherit; }
 .theme-crt .wall, .theme-crt .cell { font-family: 'DMD Unifont', var(--crt-face), monospace; }
 .theme-crt .tiny, .theme-crt .cell-label .glyph { font-family: var(--crt-face), 'DMD Unifont', monospace; }
 .theme-crt .cell-label .glyph { font-size: 40cqh; }
+.theme-crt .wall .glyph.port-label { font-family: var(--crt-face), 'DMD Unifont', monospace; font-size: min(40cqh, calc(180cqw / var(--chars))); }
 .theme-crt .tiny { font-size: 38cqh; text-shadow: none; }
 .theme-crt .panel-actions button { border-radius: 0; font-size: 1rem; }
 .theme-crt .panel h3 { font-size: 1.15rem; font-weight: 400; }

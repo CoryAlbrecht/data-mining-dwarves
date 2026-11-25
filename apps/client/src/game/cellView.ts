@@ -1,5 +1,5 @@
 import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block } from '@dmd/shared';
-import { deviceLabels } from '../components/hardware.ts';
+import { deviceLabels, portLabels } from '../components/hardware.ts';
 import type { DialogSubject, Dwarf, LevelState } from '../state/world.ts';
 import { formatBytes, formatDuration } from './format.ts';
 
@@ -29,6 +29,10 @@ export interface CellView {
   classes: string[];
   /** The dwarf standing on the cell; when set, the grid draws it instead of glyph and tiny. */
   dwarf?: Dwarf;
+  /** Small label text drawn in place of the glyph (a dug-out port's cells). */
+  label?: string;
+  /** Small mark in the top-right corner (⇅ on a port with duplex). */
+  corner?: string;
 }
 
 /** Pick a wear glyph: untouched → nearly dug out. */
@@ -112,7 +116,7 @@ function deviceCell(lvl: LevelState, b: Extract<Block, { kind: 'device' }>, ctx:
 }
 
 /** How to draw the port's cell at column `x` of the top Wall (x is inside the port's stretch). */
-export function portView(lvl: LevelState, _x: number, ctx: ViewContext): CellView {
+export function portView(lvl: LevelState, x: number, ctx: ViewContext): CellView {
   const { def } = lvl;
   const g = def.theme.glyphs;
   const exit = lvl.exit.value;
@@ -124,10 +128,26 @@ export function portView(lvl: LevelState, _x: number, ctx: ViewContext): CellVie
   const classes = ['wall', 'wall-port'];
   if (!exit.buried) classes.push('wall-port-open');
   if (ctx.dialog?.kind === 'port' && ctx.dialog.depth === def.depth) classes.push('wall-selected');
-  return {
+  const v: CellView = {
     glyph: exit.buried ? worn([g.portBuried, g.portBuried, g.portBuried], exit.remaining, def.exit.size) : g.portOpen,
     tiny: null,
     title,
     classes,
   };
+  if (!exit.buried) portLabel(lvl, x - def.exit.x, v);
+  return v;
+}
+
+/** A dug-out port's label text (and duplex mark) for its cell `k` from the left. */
+function portLabel(lvl: LevelState, k: number, v: CellView): void {
+  const { exit } = lvl.def;
+  const port = lvl.port.value;
+  v.glyph = '';
+  v.classes.push('wall-port-label');
+  if (exit.kind === 'usb') {
+    v.label = k === 0 ? 'USB' : '';
+    return;
+  }
+  v.label = portLabels(port, exit.width)[k] ?? '';
+  if (k === 0 && port.duplex) v.corner = '⇅';
 }

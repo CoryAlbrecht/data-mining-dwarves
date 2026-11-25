@@ -198,6 +198,19 @@ Each Level up costs about 1.5× the chips of the one before: 2, 3, 5, 7, 11, …
   sent by mistake, or brings abandoned dwarves along later.
 - Devices in earlier Mines keep producing. You scroll back up to collect from them, or automate
   them.
+- **Port labels:** a buried port shows rock with no labels. Once dug out, its cells show small
+  label text (like a Device's label cells) instead of the open-port glyph. Tapping it and walking
+  dwarves up into it work as before. By the port's width:
+  - 2 cells: `[tech] [in use/Capacity ≤L<max>]`
+  - 3 cells: `[tech] [in use/Capacity] [≤L<max>]`
+  - 4 cells: `[tech] [speed] [in use/Capacity] [≤L<max>]`
+
+  *In use* is the dwarves through the port now, *max* is the highest dwarf Level the Port
+  technology passes, and *speed* is the port's speed (e.g. `9600 baud`). The technology is shown
+  short: `RS-232`, `1Mb ETH`, `TOKEN`, `10BASE-T`, `FAST ETH`, `GbE`. With duplex installed, a
+  small `⇅` sits in the top-right corner of the leftmost cell. A dug-out **USB port** just shows
+  `USB` in its first cell, with no count, Level or duplex mark. The labels update as soon as
+  anything they show changes.
 
 ## Computers and sneakernet
 

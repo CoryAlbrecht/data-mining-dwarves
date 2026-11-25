@@ -195,7 +195,85 @@ describe('portView', () => {
   it('draws an open Network port', () => {
     const lvl = makeLevelState(fixture());
     lvl.exit.value = { buried: false, remaining: 0 };
-    expect(portView(lvl, 2, ctx())).toEqual({ glyph: ' ', tiny: null, title: 'Network port', classes: ['wall', 'wall-port', 'wall-port-open'] });
+    expect(portView(lvl, 2, ctx())).toEqual({
+      glyph: '', tiny: null, title: 'Network port', classes: ['wall', 'wall-port', 'wall-port-open', 'wall-port-label'], label: '0/1 ≤L4',
+    });
+  });
+
+  it('labels a dug-out 2-wide Network port with its technology, then in use/Capacity and highest Level', () => {
+    const lvl = makeLevelState(fixture());
+    lvl.exit.value = { buried: false, remaining: 0 };
+    expect([1, 2].map((x) => portView(lvl, x, ctx()).label)).toEqual(['RS-232', '0/1 ≤L4']);
+    expect(portView(lvl, 1, ctx()).glyph).toBe('');
+  });
+
+  /** The fixture Mine with a dug-out Network port `width` cells wide (columns 0 up). */
+  function openPort(width: number): LevelState {
+    const def = fixture();
+    def.exit = { ...def.exit, x: 0, width };
+    const lvl = makeLevelState(def);
+    lvl.exit.value = { buried: false, remaining: 0 };
+    return lvl;
+  }
+  const labels = (lvl: LevelState) => Array.from({ length: lvl.def.exit.width }, (_, k) => portView(lvl, lvl.def.exit.x + k, ctx()).label);
+
+  it('spreads the labels over a 3-wide port', () => {
+    expect(labels(openPort(3))).toEqual(['RS-232', '0/1', '≤L4']);
+  });
+
+  it('adds the port speed on a 4-wide port', () => {
+    const lvl = openPort(4);
+    expect(labels(lvl)).toEqual(['RS-232', '300 baud', '0/1', '≤L4']);
+    lvl.port.value = { ...lvl.port.value, level: 4 };
+    expect(labels(lvl)).toEqual(['RS-232', '9600 baud', '0/3', '≤L4']);
+  });
+
+  it('gives every Port technology its short name and highest dwarf Level', () => {
+    const lvl = openPort(3);
+    const seen = [0, 1, 2, 3, 4, 5].map((tech) => {
+      lvl.port.value = { ...lvl.port.value, tech };
+      const [name, , max] = labels(lvl);
+      return `${name} ${max}`;
+    });
+    expect(seen).toEqual(['RS-232 ≤L4', '1Mb ETH ≤L5', 'TOKEN ≤L6', '10BASE-T ≤L7', 'FAST ETH ≤L8', 'GbE ≤L9']);
+  });
+
+  it('counts dwarves through against the Capacity of the port Level', () => {
+    const lvl = openPort(3);
+    lvl.port.value = { ...lvl.port.value, passed: 1 };
+    expect(labels(lvl)[1]).toBe('1/1');
+    lvl.port.value = { ...lvl.port.value, level: 3, passed: 2 };
+    expect(labels(lvl)[1]).toBe('2/2');
+    lvl.port.value = { ...lvl.port.value, passed: 0 };
+    expect(labels(lvl)[1]).toBe('0/2');
+  });
+
+  it('marks duplex with ⇅ in the leftmost cell only', () => {
+    const lvl = openPort(3);
+    expect([0, 1, 2].map((x) => portView(lvl, x, ctx()).corner)).toEqual([undefined, undefined, undefined]);
+    lvl.port.value = { ...lvl.port.value, duplex: true };
+    expect([0, 1, 2].map((x) => portView(lvl, x, ctx()).corner)).toEqual(['⇅', undefined, undefined]);
+  });
+
+  it('shows no labels or duplex mark on a buried port', () => {
+    const lvl = makeLevelState(fixture());
+    lvl.port.value = { ...lvl.port.value, duplex: true };
+    for (const x of [1, 2]) {
+      const v = portView(lvl, x, ctx());
+      expect(v.label).toBeUndefined();
+      expect(v.corner).toBeUndefined();
+      expect(v.glyph).toBe('▒');
+    }
+  });
+
+  it('labels a dug-out USB port only with USB', () => {
+    const lvl = makeLevelState(fixture(4));
+    lvl.port.value = { ...lvl.port.value, duplex: true, passed: 1 };
+    expect([1, 2].map((x) => portView(lvl, x, ctx()).label)).toEqual([undefined, undefined]);
+    lvl.exit.value = { buried: false, remaining: 0 };
+    const views = [1, 2].map((x) => portView(lvl, x, ctx()));
+    expect(views.map((v) => v.label)).toEqual(['USB', '']);
+    expect(views.map((v) => v.corner)).toEqual([undefined, undefined]);
   });
 
   it('titles a USB port for sneakernet', () => {

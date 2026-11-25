@@ -32,7 +32,12 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
       const v = portView(lvl, x, ctx);
       cells.push(
         <div key={`t${x}`} className={v.classes.join(' ')} title={v.title || undefined} data-depth={depth} data-exit="" onClick={() => tapExit(depth)}>
-          <span className="glyph">{v.glyph}</span>
+          {v.label === undefined ? <span className="glyph">{v.glyph}</span> : (
+            <span className="glyph port-label" style={{ '--chars': Math.max(4, v.label.length) } as CSSProperties}>
+              {v.label}
+            </span>
+          )}
+          {v.corner && <span className="corner">{v.corner}</span>}
         </div>,
       );
     } else {
