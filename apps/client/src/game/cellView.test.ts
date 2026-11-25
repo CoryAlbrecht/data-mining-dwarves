@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { bufferCap, getDeviceModel, type Block, type LevelDef } from '@dmd/shared';
-import { dig } from '../state/actions.ts';
-import { EXIT, makeLevelState, type Dwarf, type LevelState } from '../state/world.ts';
+import { dig, produceFor } from '../state/actions.ts';
+import { deviceLevels, EXIT, levels, makeLevelState, type Dwarf, type LevelState } from '../state/world.ts';
 import { cellView, portView, type ViewContext } from './cellView.ts';
 
 /**
@@ -218,6 +218,18 @@ describe('cellView: Device fill', () => {
     lvl.buffers.value = [cap / 2];
     lvl.automated.value = [0];
     expect(fills(lvl)).toEqual([0, 0, 1, 1]);
+  });
+
+  it('shows a producing automated Device filling up before its cron job empties it', () => {
+    const lvl = uncovered();
+    lvl.automated.value = [0];
+    levels.value = [lvl];
+    deviceLevels.value = {};
+    produceFor(100); // a third of the 300 s Buffer
+    const [top, , bottom] = fills(lvl);
+    expect(top).toBe(0);
+    expect(bottom).toBeGreaterThan(0);
+    levels.value = [];
   });
 
   it('never fills fork(), which is not a producing Device, nor a buried Device', () => {

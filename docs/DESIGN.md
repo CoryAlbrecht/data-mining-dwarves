@@ -19,7 +19,8 @@ rules in words.
 5. **Chips work like cards.** Spending N chips of a model raises that device's **Level**. It's
    still a 4004, but it produces more bytes.
 6. **Automation** comes from a special drop: a **cron job** chip. Applying one to a device makes it
-   collect its own output.
+   collect its own output: the Device still fills its buffer, and each time the buffer is full the
+   cron job empties it into your bytes, carrying any overflow into the emptied buffer.
 
 ## Mine layout
 
@@ -98,7 +99,8 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - Every producing Device **fills like a tank** as its Buffer grows: the level (Buffer over its cap)
   rises smoothly across the whole Device, bottom row first, so a cell can be partly filled. The
   empty part is the faint Device background and the filled part a little stronger. Automated
-  Devices show it too; fork() produces nothing and doesn't fill.
+  Devices fill too, then empty at once when their cron job collects a full Buffer; fork()
+  produces nothing and doesn't fill.
 - When a Device with no cron job is **completely full**, its Collect button gives one soft pulse
   every 4 seconds. Reduced motion turns the pulse off.
 
