@@ -1,14 +1,15 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along three axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?) and Acceptance (is every acceptance criterion of the ticket met?). Runs the three reviews in parallel fresh sub-agents, reports them side by side, and gives a verdict that gates the commit. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Three-axis review of the diff between a fixed point and the work under review:
 
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
+- **Acceptance**: is each acceptance criterion of each ticket met, one by one?
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings. Start every sub-agent with a fresh context window.
+Each axis runs as a **parallel sub-agent** so they don't pollute each other's context, then this skill aggregates their findings. Start every sub-agent with a fresh context window (never a fork): the author of a change never reviews it.
 
 The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
 
@@ -20,7 +21,9 @@ Whatever the user said is the fixed point (a commit SHA, branch name, tag, `main
 
 Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
-Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
+**Uncommitted work** (the usual case, since review gates the commit): the fixed point is `HEAD`, the diff command is `git diff HEAD`, and `git status --short` lists new files the reviewers must read too. The spec source is then the ticket numbers the work is for.
+
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside three parallel sub-agents.
 
 ### 2. Identify the spec source
 
@@ -55,9 +58,9 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-### 4. Spawn both sub-agents in parallel
+### 4. Spawn all three sub-agents in parallel
 
-Issue both sub-agent calls together, in the foreground, and aggregate the reports they return.
+Issue the three sub-agent calls together, in the foreground, and aggregate the reports they return.
 
 **Standards sub-agent prompt** should include:
 
@@ -71,19 +74,30 @@ Issue both sub-agent calls together, in the foreground, and aggregate the report
 - The path or fetched contents of the spec.
 - The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
 
-If the spec is missing, skip the Spec sub-agent and note this in the final report.
+**Acceptance sub-agent prompt** should include:
+
+- The diff command and commit list (or the list of new files).
+- The ticket references, to fetch with the tracker workflow, so it reads each ticket's acceptance criteria itself.
+- The brief: "For every acceptance criterion of every ticket, give PASS or FAIL with the evidence (file and line, a test name, or a command you ran and its output). Run the repo's verify commands. A criterion you can't check from here is FAIL with the reason. Under 400 words."
+
+Every sub-agent ends its report with one line: `VERDICT: APPROVE` or `VERDICT: CHANGES NEEDED`.
+
+If the spec is missing, skip the Spec and Acceptance sub-agents and note this in the final report.
 
 ### 5. Aggregate
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_).
+Present the three reports under `## Standards`, `## Spec` and `## Acceptance` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the axes are deliberately separate (see _Why separate axes_).
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
 
-## Why two axes
+The review **passes** only when all three verdicts are `APPROVE`. Otherwise fix the findings (or record why one doesn't apply, for the user to see), and re-run the reviewers that asked for changes, fresh again.
 
-A change can pass one axis and fail the other:
+## Why separate axes
+
+A change can pass one axis and fail another:
 
 - Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+- Code that matches the spec's intent but skips a written acceptance criterion → **Spec pass, Acceptance fail.**
 
-Reporting them separately stops one axis from masking the other.
+Reporting them separately stops one axis from masking another.
