@@ -3,7 +3,7 @@ import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block, type Lev
 import { formatBytes, formatDuration } from '../game/format.ts';
 import { tapCell, tapExit } from '../state/actions.ts';
 import { frame } from '../state/clock.ts';
-import { dwarfAt, levelOf, openDialog, type LevelState } from '../state/world.ts';
+import { dwarfAt, levelOf, dialogSubject, type LevelState } from '../state/world.ts';
 import { DwarfToken } from './DwarfToken.tsx';
 import { deviceLabels } from './hardware.ts';
 
@@ -48,7 +48,7 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
         <Wall
           key={`t${x}`}
           glyph={portGlyph}
-          className={`wall-port${exit.buried ? '' : ' wall-port-open'}${openDialog.value?.kind === 'port' && openDialog.value.depth === depth ? ' wall-selected' : ''}`}
+          className={`wall-port${exit.buried ? '' : ' wall-port-open'}${dialogSubject.value?.kind === 'port' && dialogSubject.value.depth === depth ? ' wall-selected' : ''}`}
           title={portTitle}
           data-depth={depth}
           data-exit=""
@@ -161,7 +161,7 @@ function Cell({
         classes.push('cell-label');
         title = `${model.name}: tap for details`;
       }
-      const open = openDialog.value;
+      const open = dialogSubject.value;
       if (open?.kind === 'device' && open.depth === depth && open.device === b.device) classes.push('cell-selected');
       break;
     }

@@ -32,11 +32,11 @@ import {
   inventory,
   levelAt,
   levelOf,
-  openDialog,
+  dialogSubject,
   underExit,
   type LevelState,
 } from '../state/world.ts';
-import { themeVars } from './LevelView.tsx';
+import { themeVars } from './theme.ts';
 
 function ChipButton({ chip, need, onClick, label }: { chip: string; need: number; onClick: () => void; label: string }) {
   const have = inventory.value[chip] ?? 0;
@@ -163,7 +163,7 @@ function closeOnBackdrop(e: MouseEvent<HTMLDialogElement>) {
  * the Mine it was opened from. Escape, ✕ or a backdrop tap closes it.
  */
 export function GameDialog() {
-  const subject = openDialog.value;
+  const subject = dialogSubject.value;
   const lvl = subject && levelAt(subject.depth);
   if (!subject || !lvl) return null;
   let body: ReactNode;
@@ -172,7 +172,7 @@ export function GameDialog() {
   const { theme } = lvl.def;
   return (
     <dialog
-      // Opened as a modal as soon as it mounts; unmounting (openDialog cleared) removes it.
+      // Opened as a modal as soon as it mounts; unmounting (dialogSubject cleared) removes it.
       ref={(el) => {
         if (el && !el.open) el.showModal();
       }}
@@ -194,4 +194,3 @@ export function GameDialog() {
     </dialog>
   );
 }
-

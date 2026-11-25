@@ -39,7 +39,7 @@ import {
   makeLevelState,
   message,
   selectedDwarf,
-  openDialog,
+  dialogSubject,
   underExit,
   type Dwarf,
   type LevelState,
@@ -272,7 +272,7 @@ function stepIntoExit(id: number): boolean {
   }
   if (lvl.def.exit.kind === 'port') return travelDown(id);
   updateDwarf(id, STOP);
-  openDialog.value = { kind: 'port', depth: d.depth };
+  dialogSubject.value = { kind: 'port', depth: d.depth };
   say('This dwarf is at the USB port. Ready to sneakernet to the next computer?');
   return false;
 }
@@ -501,20 +501,21 @@ export function tapCell(depth: number, i: number) {
     }
     if (b.role === 'collect') useDevice(depth, b.device);
     else if (b.role === 'upgrade') upgradeDevice(deviceDef(lvl, b.device).model);
-    else openDialog.value = { kind: 'device', depth, device: b.device };
+    else dialogSubject.value = { kind: 'device', depth, device: b.device };
     return;
   }
   if (b.kind === 'rock') say('Move a dwarf next to it (or drag one onto it) to mine it.');
   if (b.kind === 'item') say('Walk a dwarf onto it to pick it up.');
 }
 
-/** Tap the port's stretch of Wall: open its panel. */
+/** Tap the Network or USB port's stretch of Wall: open its dialog. */
 export function tapExit(depth: number) {
-  openDialog.value = { kind: 'port', depth };
+  dialogSubject.value = { kind: 'port', depth };
 }
 
+/** Close the Device or port dialog, if one is open. */
 export function closeDialog() {
-  openDialog.value = null;
+  dialogSubject.value = null;
 }
 
 /** A Device's collect spot: collect its bytes, or for fork(), buy a dwarf. */
@@ -672,7 +673,7 @@ export async function sneakernet(depth: number) {
       dwarves.value = [{ id: 1, level: 1, depth: def.depth, pos: arrivalCell(def), target: null, ...STOP }];
       dwarvesBought.value = 0;
       selectedDwarf.value = 1;
-      openDialog.value = null;
+      dialogSubject.value = null;
     });
     say(`Sneakernet complete! Welcome to computer ${def.computer + 1}: ${def.theme.name}.`);
   } catch {

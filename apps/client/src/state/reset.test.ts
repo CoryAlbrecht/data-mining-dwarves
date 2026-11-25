@@ -72,4 +72,12 @@ describe('dev ?reset', () => {
     expect(b.store.get('dmd-save-v5')).toBe('{"bytes":99}');
     expect(b.cacheNames.size).toBe(3);
   });
+
+  it('still reloads without the flag if part of the wipe fails', async () => {
+    const b = oldBrowser();
+    b.browser.caches = { keys: async () => ['dmd-fonts'], delete: async () => Promise.reject(new Error('blocked')) };
+    await resetIfAsked('http://host:5173/?reset', true, b.browser).catch(() => {});
+    expect(b.store.has('dmd-save-v5')).toBe(false);
+    expect(b.reloads).toEqual(['http://host:5173/']);
+  });
 });

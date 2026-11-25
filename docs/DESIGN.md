@@ -80,12 +80,12 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   - Tapping upgrade spends chips right away, or flashes how many are still needed.
   - The **label** cells show the kind and model. Tapping one opens the **Device's dialog** (details,
     collect, upgrade, automate). Tapping a buried Device opens nothing, only a ticker hint.
+  - Keyboard: **E** collects from a Device next to the selected dwarf.
 - **Dialogs:** tapping a Device's label or the Network/USB port opens its dialog over the page.
   It's modal: the Mine is dimmed and can't be tapped, but the game keeps running. Only one is open
   at a time. It stays open after an action and updates live. Escape, ✕ or tapping the dimmed
   backdrop closes it. While it's open the game keys rest, and Escape closes only the dialog. It
   wears the Theme of the Mine it came from. The Entry has no dialog.
-  - Keyboard: **E** collects from a Device next to the selected dwarf.
 - A Device with no cron job slowly cycles its collect glyph when it's **completely full**.
 
 ## Look

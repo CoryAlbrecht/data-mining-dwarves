@@ -399,12 +399,12 @@ describe('Device and port dialogs', () => {
   it("opens an uncovered Device's dialog from its label", () => {
     uncover(1);
     A.tapCell(1, 7);
-    expect(W.openDialog.value).toEqual({ kind: 'device', depth: 1, device: 0 });
+    expect(W.dialogSubject.value).toEqual({ kind: 'device', depth: 1, device: 0 });
   });
 
   it('opens nothing for a buried Device, just the ticker hint', () => {
     A.tapCell(1, 7);
-    expect(W.openDialog.value).toBeNull();
+    expect(W.dialogSubject.value).toBeNull();
     expect(message.value).toMatch(/Buried hardware/);
   });
 
@@ -413,15 +413,15 @@ describe('Device and port dialogs', () => {
     levelAt(1)!.buffers.value = [42];
     A.tapCell(1, 6);
     expect(W.bytes.value).toBe(42);
-    expect(W.openDialog.value).toBeNull();
+    expect(W.dialogSubject.value).toBeNull();
   });
 
   it("opens the port's dialog, and only one dialog at a time", () => {
     A.tapExit(1);
-    expect(W.openDialog.value).toEqual({ kind: 'port', depth: 1 });
+    expect(W.dialogSubject.value).toEqual({ kind: 'port', depth: 1 });
     uncover(2);
     A.tapCell(2, 7);
-    expect(W.openDialog.value).toEqual({ kind: 'device', depth: 2, device: 0 });
+    expect(W.dialogSubject.value).toEqual({ kind: 'device', depth: 2, device: 0 });
   });
 
   it('ignores game keys while a dialog is open', () => {
@@ -438,7 +438,7 @@ describe('Device and port dialogs', () => {
     W.selectedDwarf.value = 1;
     A.tapExit(1);
     press('Escape');
-    expect(W.openDialog.value).toBeNull();
+    expect(W.dialogSubject.value).toBeNull();
     expect(W.selectedDwarf.value).toBe(1);
     press('d');
     expect(get(1)!.pos).toBe(10); // keys work again

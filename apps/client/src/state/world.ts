@@ -87,7 +87,7 @@ export const selectedDwarf = signal<number | null>(null);
 /** What a dialog over the page is showing: one Device's or one port's details. */
 export type DialogSubject = { kind: 'device'; depth: number; device: number } | { kind: 'port'; depth: number };
 /** The one open dialog, if any. */
-export const openDialog = signal<DialogSubject | null>(null);
+export const dialogSubject = signal<DialogSubject | null>(null);
 /** A dwarf being dragged with mouse or touch, and where the pointer is. */
 export const drag = signal<{ id: number; x: number; y: number } | null>(null);
 export const message = signal<string | null>(null);

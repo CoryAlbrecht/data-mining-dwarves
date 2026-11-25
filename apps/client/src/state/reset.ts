@@ -32,10 +32,14 @@ async function wipeGameData(b: BrowserData) {
 export async function resetIfAsked(href: string, dev: boolean, b: BrowserData): Promise<boolean> {
   const url = new URL(href);
   if (!dev || !url.searchParams.has('reset')) return false;
-  await wipeGameData(b);
-  b.storage.setItem(FRESH_START_KEY, '1');
-  url.searchParams.delete('reset');
-  b.reload(url.href);
+  try {
+    await wipeGameData(b);
+  } finally {
+    // Even after a partial wipe, reload without the flag: never boot the old game half-wiped.
+    b.storage.setItem(FRESH_START_KEY, '1');
+    url.searchParams.delete('reset');
+    b.reload(url.href);
+  }
   return true;
 }
 

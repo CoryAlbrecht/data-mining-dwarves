@@ -5,7 +5,7 @@
  */
 import { WALK_SECONDS, type Direction } from '@dmd/shared';
 import { closeDialog, moveDwarf, selectDwarf, useAdjacentDevice } from './actions.ts';
-import { dwarves, openDialog, selectedDwarf } from './world.ts';
+import { dwarves, dialogSubject, selectedDwarf } from './world.ts';
 
 const MOVES: Record<string, Direction> = {
   w: 'up', a: 'left', s: 'down', d: 'right',
@@ -58,7 +58,7 @@ function isTextField(target: unknown): boolean {
 export function handleKey(e: KeyPress): boolean {
   if (e.ctrlKey || e.metaKey || e.altKey || isTextField(e.target)) return false;
   const key = e.key.toLowerCase();
-  if (openDialog.value) {
+  if (dialogSubject.value) {
     // A dialog is up: game keys rest, and Escape closes only the dialog (the dwarf stays selected).
     held = null;
     if (key === 'escape') closeDialog();
@@ -92,7 +92,7 @@ export function handleKeyUp(e: { key: string }) {
 /** Called by the game loop: while a direction key is held, step once per WALK_SECONDS. */
 export function walkHeldKey(dt: number) {
   if (!held) return;
-  if (selectedDwarf.value !== held.id || openDialog.value) {
+  if (selectedDwarf.value !== held.id || dialogSubject.value) {
     held = null; // deselected (Escape), another dwarf picked, or a dialog opened: stop
     return;
   }
