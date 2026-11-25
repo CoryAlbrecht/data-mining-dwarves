@@ -2,6 +2,13 @@
 
 Issues and specs for this repo live as GitHub issues in the private repo `CoryAlbrecht/data-mining-dwarves`. Use the `gh` CLI for all operations.
 
+## Ticket kinds
+
+- **Spec ticket**: an issue with sub-issues. It is the source of truth for its feature; work on it
+  happens through its sub-issues, on one shared branch and PR.
+- **Sub-issue**: an issue whose parent is a spec ticket. It is built only as part of its spec.
+- **Lone ticket**: an issue with no parent and no sub-issues (a bug, a chore, an atomic feature).
+
 ## Conventions
 
 - **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
@@ -21,6 +28,8 @@ File issues only into the user's own repo. Never file into `mattpocock/skills` (
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
+
+Agent-authored PRs are not requests: they follow the lifecycle in `workflow.md`.
 
 When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
 
