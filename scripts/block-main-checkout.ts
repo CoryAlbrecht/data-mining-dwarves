@@ -54,23 +54,45 @@ export function editBlocked(path: string, projectDir: string): boolean {
   return git(checkout, 'check-ignore', '-q', file) === null; // exits 1 when not ignored
 }
 
-/** The git subcommands that write to the branch they act on. */
-const WRITES = new Set(['commit', 'push', 'merge', 'rebase', 'reset']);
+/** The git subcommands that write to the branch they act on (`pull` only without `--ff-only`). */
+const MAIN_WRITING_SUBCOMMANDS = new Set(['commit', 'push', 'merge', 'rebase', 'reset', 'cherry-pick', 'revert', 'am', 'pull']);
 /** git's global options that take the next word as their value. */
 const GLOBAL_VALUE_OPTIONS = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--config-env', '--super-prefix']);
+/** The global options that choose which repo and worktree git acts on. */
+const LOCATION_OPTIONS = new Set(['-C', '--git-dir', '--work-tree']);
 
-/** A git command's directory after its `-C` options, its subcommand and that subcommand's arguments. */
-function parseGitCommand(args: string[], dir: string): { dir: string; sub?: string; rest: string[] } {
+/**
+ * A git command's location options (`-C`, `--git-dir`, `--work-tree`, each as one `--opt=value`
+ * word or two words), its subcommand and that subcommand's arguments.
+ */
+function parseGitCommand(args: string[]): { locationArgs: string[]; sub?: string; rest: string[] } {
+  const locationArgs: string[] = [];
   let k = 0;
   for (; k < args.length && args[k]!.startsWith('-'); k++) {
-    if (args[k] === '-C') dir = resolve(dir, args[k + 1] ?? '.');
+    const name = args[k]!.split('=')[0]!;
+    if (LOCATION_OPTIONS.has(name)) locationArgs.push(...(name === args[k] ? args.slice(k, k + 2) : [args[k]!]));
     if (GLOBAL_VALUE_OPTIONS.has(args[k]!)) k++;
   }
-  return { dir, sub: args[k], rest: args.slice(k + 1) };
+  return { locationArgs, sub: args[k], rest: args.slice(k + 1) };
 }
 
-/** The branch checked out in `dir`, or null (detached HEAD, or not in a repo). */
-const branchIn = (dir: string) => (existsSync(dir) ? git(dir, 'symbolic-ref', '--short', '-q', 'HEAD') : null);
+/** The branch a git command run in `dir` with these location options acts on, or null (detached HEAD, or not in a repo). */
+const branchIn = (dir: string, locationArgs: string[]) =>
+  existsSync(dir) ? git(dir, ...locationArgs, 'symbolic-ref', '--short', '-q', 'HEAD') : null;
+
+/** `git rebase` options that take the next word as their value. */
+const REBASE_VALUE_OPTIONS = new Set(['--onto', '-s', '--strategy', '-X', '--strategy-option', '-x', '--exec']);
+
+/** True when a `git rebase` with these arguments names `main` as the branch to rebase (not the upstream). */
+function rebasesMain(args: string[]): boolean {
+  const positional: string[] = [];
+  for (let k = 0; k < args.length; k++) {
+    if (REBASE_VALUE_OPTIONS.has(args[k]!)) k++;
+    else if (!args[k]!.startsWith('-')) positional.push(args[k]!);
+  }
+  const branch = args.includes('--root') ? positional[0] : positional[1];
+  return branch?.replace(/^refs\/heads\//, '') === 'main';
+}
 
 /** `git push` options that take the next word as their value. */
 const PUSH_VALUE_OPTIONS = new Set(['--repo', '-o', '--push-option', '--receive-pack', '--exec']);
@@ -93,13 +115,16 @@ function pushesToMain(args: string[]): boolean {
   });
 }
 
-/** True when `command`, run in `cwd`, would commit, push, merge, rebase or reset `main`. */
+/** True when `command`, run in `cwd`, would write to `main` (see MAIN_WRITING_SUBCOMMANDS). */
 export function gitBlocked(command: string, cwd: string): boolean {
-  for (const { words, dir: here } of simpleCommands(command, cwd)) {
+  for (const { words, dir } of simpleCommands(command, cwd)) {
     if (words[0] !== 'git') continue;
-    const { dir, sub, rest } = parseGitCommand(words.slice(1), here);
-    if (!sub || !WRITES.has(sub)) continue;
-    if (branchIn(dir) === 'main' || (sub === 'push' && pushesToMain(rest))) return true;
+    const { locationArgs, sub, rest } = parseGitCommand(words.slice(1));
+    if (!sub || !MAIN_WRITING_SUBCOMMANDS.has(sub)) continue;
+    if (sub === 'pull' && rest.includes('--ff-only')) continue;
+    if (sub === 'push' && pushesToMain(rest)) return true;
+    if (sub === 'rebase' && rebasesMain(rest)) return true;
+    if (branchIn(dir, locationArgs) === 'main') return true;
   }
   return false;
 }
@@ -115,7 +140,7 @@ async function main() {
   let reason: string | undefined;
   if (input.tool_name === 'Bash') {
     if (gitBlocked(input.tool_input?.command ?? '', cwd)) {
-      reason = 'git commit/push/merge/rebase/reset would write to main. Work on your own branch in a linked worktree and land it through a PR';
+      reason = 'this git command would write to main (git pull is allowed only with --ff-only). Work on your own branch in a linked worktree and land it through a PR';
     }
   } else {
     const path = input.tool_input?.file_path ?? input.tool_input?.notebook_path;

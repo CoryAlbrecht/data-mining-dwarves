@@ -85,6 +85,51 @@ describe('git writes to main', () => {
     expect(gitBlocked(`cd ${linked} && git commit -m x`, main)).toBe(false);
   });
 
+  it('blocks cherry-pick, revert and am while the branch is main', () => {
+    for (const sub of ['cherry-pick feat/x', 'revert HEAD', 'am patch.mbox']) {
+      expect(gitBlocked(`git ${sub}`, main), sub).toBe(true);
+      expect(gitBlocked(`git ${sub}`, linked), sub).toBe(false);
+    }
+  });
+
+  it('follows --git-dir and --work-tree to the branch they act on', () => {
+    for (const opts of [
+      `--git-dir=${main}/.git --work-tree=${main}`,
+      `--git-dir ${main}/.git --work-tree ${main}`,
+      `--git-dir=${main}/.git`,
+      `--git-dir ${main}/.git`,
+      `-C ${main} --git-dir=.git`,
+    ]) {
+      expect(gitBlocked(`git ${opts} commit -m x`, linked), opts).toBe(true);
+    }
+    expect(gitBlocked(`git --git-dir=${main}/.git/worktrees/wt --work-tree=${linked} commit -m x`, main)).toBe(false);
+  });
+
+  it('blocks a rebase whose branch argument is main, from any branch', () => {
+    for (const rebase of [
+      'git rebase feat/x main',
+      'git rebase --onto feat/x feat/x~1 main',
+      'git rebase -X theirs feat/x refs/heads/main',
+      'git rebase --root main',
+    ]) {
+      expect(gitBlocked(rebase, linked), rebase).toBe(true);
+    }
+  });
+
+  it('allows rebasing a feature branch onto main', () => {
+    for (const rebase of ['git rebase main', 'git rebase origin/main', 'git rebase --onto main feat/x~1', 'git rebase main feat/x']) {
+      expect(gitBlocked(rebase, linked), rebase).toBe(false);
+    }
+  });
+
+  it('blocks a pull on main unless it is --ff-only', () => {
+    expect(gitBlocked('git pull', main)).toBe(true);
+    expect(gitBlocked('git pull --rebase', main)).toBe(true);
+    expect(gitBlocked('git pull origin main', main)).toBe(true);
+    expect(gitBlocked('git pull --ff-only origin main', main)).toBe(false);
+    expect(gitBlocked('git pull', linked)).toBe(false);
+  });
+
   it('blocks a push to main from another branch', () => {
     for (const push of [
       'git push origin main',
