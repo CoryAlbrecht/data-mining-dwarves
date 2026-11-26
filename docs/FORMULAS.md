@@ -183,7 +183,7 @@ Source: [`layout.ts`](../packages/shared/src/layout.ts).
 
 ```
 portWidth(c)       = min(4, 2 + c) cells
-startTech(c)       = technology # min(5, c)        (the Network technologies table, §8)
+startTech(c)       = technology # min(5, c)        (the Port technology table, §8)
 deviceFootprint(c) = 2×2 (C1), 2×3 (C2), 3×3 (C3 on)     w × h
 fork() footprint   = 2×2 always
 Mine size          = 8 wide × 12 tall
@@ -508,7 +508,7 @@ The CPU rolls so far give the 4004 on C1, the Z80 on C2, the 80386 on C3 and the
 
 Source: [`network.ts`](../packages/shared/src/network.ts).
 
-### Capacity
+### Port capacity
 
 ```
 portCapacity(L) = floor(L / 2) + 1        dwarves through the port at the same time
@@ -547,7 +547,7 @@ The speed label is cosmetic.
 ## 9. Sneakernet
 
 ```
-kept:  bytes, chips, every model's Level (Devices, fork(), Network technologies)
+kept:  bytes, chips, every model's Level (Devices, fork(), Port technologies)
 reset: dwarves → one L1 dwarf;  fork() purchase count n → 0;  the old Computer's Mines are gone
 ```
 

@@ -54,7 +54,7 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - **Placement:** rocks are sorted easiest at the bottom to hardest at the top, then each one has a
   50% chance to swap with a rock up to 2 rows away, so the layers aren't perfectly stratified.
 - **Loot odds** for ordinary bit-rocks: 55% bytes, 24% chips for this Mine's producing Devices,
-  3% fork(), 6% chips for this Mine's Network technologies, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
+  3% fork(), 6% chips for this Mine's Port technologies, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
 - **Chip stacks:** a model chip comes as a stack that grows with the rock's Level, sometimes with
   one extra. Duplex and cron chips always come one at a time. Over the first two Computers that
   works out to about 4 chips per producing Device per Mine.
@@ -84,7 +84,7 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - A buried Device is one mass. Any dwarf next to any of its cells digs it, and it's uncovered all
   at once. Uncovered Devices are **solid**: dwarves walk around them.
 - **Cells:**
-  - The **collect** spot (`⇩`; `+` on fork() for "buy a dwarf") and the **upgrade** spot (`⇧`,
+  - The **Collect button** (`⇩`; `+` on fork() for "buy a dwarf") and the **upgrade** spot (`⇧`,
     with the Level as a tiny number) are on the side facing the middle of the Mine, collect lowest.
   - Tapping upgrade spends chips right away, or flashes how many are still needed.
   - The **label** cells show the kind and model. Tapping one opens the **Device's dialog** (details,
@@ -191,8 +191,8 @@ Each Level up costs about 1.5× the chips of the one before: 2, 3, 5, 7, 11, …
 
 - Each Mine's network port connects it to the next Mine. You dig it out, then upgrade it with
   chips. Mines form the **Chain** you can scroll back through.
-- **Capacity:** a port's Level sets how many dwarves can be through it at the same time, one more
-  every 2 Levels. Bringing a dwarf back up frees its place.
+- **Port capacity:** a port's Level sets how many dwarves can be through it at the same time, one
+  more every 2 Levels. Bringing a dwarf back up frees its place.
 - **Port technology** limits which dwarf Levels can pass. Upgrading the technology resets the port
   to Level 1, which lowers its capacity again:
 

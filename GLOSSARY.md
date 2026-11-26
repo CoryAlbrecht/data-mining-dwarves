@@ -65,21 +65,22 @@ The bytes a producing Device has made but nobody has collected yet. It fills up 
 _Avoid_: Storage (that's a kind of Device), bank
 
 **Collect button**:
-The cell on a producing Device that the player taps to empty its Buffer into their bytes. It blinks slowly while the Buffer is full, unless a cron job collects for it.
-_Avoid_: Empty button
+The cell on a producing Device that the player taps to empty its Buffer into their bytes. It pulses slowly while the Buffer is full, unless a cron job collects for it.
+_Avoid_: collect spot
 
 **fork()**:
 The Device that spawns new dwarves for bytes.
 _Avoid_: Forge
 
 **Network port**:
-A 2–4 cell stretch of a Mine's top Wall that dwarves dig through to reach the next Mine in the Chain. Its technology runs from a serial port up through Token Ring and Ethernet.
+A 2–4 cell stretch of a Mine's top Wall that dwarves dig through to reach the next Mine in the Chain. Its Port technology caps the dwarf Level that can pass through.
 _Avoid_: Data port
 
 **Port technology**:
 The Network port's generation, from Serial up to Gigabit Ethernet. It caps the dwarf Level that can pass through.
+_Avoid_: Network technology
 
-**Capacity**:
+**Port capacity**:
 How many dwarves can be through a Network port at the same time. The port's Level sets it; bringing a dwarf back up frees its place.
 
 **USB port**:
@@ -109,7 +110,7 @@ The in-game currency. There is never a real-money path.
 _Avoid_: Bits, coins, gold
 
 **Chip**:
-A card-like collectible for one specific Device model, Network technology, or special use. Spending chips raises a Level.
+A card-like collectible for one specific Device model, Port technology, or special use. Spending chips raises a Level.
 _Avoid_: Card
 
 **Cron job**:
