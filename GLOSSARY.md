@@ -64,6 +64,10 @@ _Avoid_: Peripheral, socket, slot
 The bytes a producing Device has made but nobody has collected yet. It fills up to a cap and then stops filling until the player collects. An automated Device's Buffer fills the same way, but its cron job empties it each time it is full.
 _Avoid_: Storage (that's a kind of Device), bank
 
+**Collect button**:
+The cell on a producing Device that the player taps to empty its Buffer into their bytes. It blinks slowly while the Buffer is full, unless a cron job collects for it.
+_Avoid_: Empty button
+
 **fork()**:
 The Device that spawns new dwarves for bytes.
 _Avoid_: Forge
@@ -71,6 +75,12 @@ _Avoid_: Forge
 **Network port**:
 A 2–4 cell stretch of a Mine's top Wall that dwarves dig through to reach the next Mine in the Chain. Its technology runs from a serial port up through Token Ring and Ethernet.
 _Avoid_: Data port
+
+**Port technology**:
+The Network port's generation, from Serial up to Gigabit Ethernet. It caps the dwarf Level that can pass through.
+
+**Capacity**:
+How many dwarves can be through a Network port at the same time. The port's Level sets it; bringing a dwarf back up frees its place.
 
 **USB port**:
 Takes the place of the Network port in the top Wall of a Computer's last Mine. It leads by Sneakernet to the next Computer.
