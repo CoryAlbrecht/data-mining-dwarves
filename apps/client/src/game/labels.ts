@@ -1,8 +1,8 @@
 import { getDeviceModel, networkTech, portCapacity, portSpeed, type DeviceKind, type NetworkTechId, type PortState } from '@dmd/shared';
 
-/** Pads a list of cell labels with empty cells, or cuts it, to exactly `cells` entries. */
-function padTo(out: string[], cells: number): string[] {
-  while (out.length < cells) out.push('');
+/** Pads a list of cell labels with `empty` cells, or cuts it, to exactly `cells` entries. */
+function padTo<T>(out: T[], cells: number, empty: () => T): T[] {
+  while (out.length < cells) out.push(empty());
   return out.slice(0, cells);
 }
 
@@ -23,7 +23,7 @@ const SHORTEN: [RegExp, string][] = [
  */
 export function deviceLabels(model: string, cells: number): string[] {
   const m = getDeviceModel(model);
-  if (m.kind === 'forge') return padTo(['fork', '()'], cells);
+  if (m.kind === 'forge') return padTo(['fork', '()'], cells, () => '');
   let name = m.name;
   for (const [re, to] of SHORTEN) name = name.replace(re, to);
   const words = name.trim().split(/\s+/);
@@ -34,7 +34,7 @@ export function deviceLabels(model: string, cells: number): string[] {
     if (out.length - 1 < room) out.push(word);
     else out[out.length - 1] = `${out.at(-1)}${word}`;
   }
-  return padTo(out, cells);
+  return padTo(out, cells, () => '');
 }
 
 /** Short Port technology names for the port's label cells, by technology id. */
@@ -48,14 +48,30 @@ const PORT_TECH_SHORT: Record<NetworkTechId, string> = {
 };
 
 /**
- * Text for a dug-out Network port's cells, left to right, by port width:
- * 2 → [tech, "in use/Capacity ≤Lmax"]; 3 → [tech, "in use/Capacity", "≤Lmax"];
- * 4 → [tech, speed, "in use/Capacity", "≤Lmax"].
+ * One label cell of a dug-out port: its lines of text, top to bottom, and whether it's drawn big.
+ * Capacity and max Level cells are big; the technology name and speed are not.
  */
-export function portLabels(port: PortState, cells: number): string[] {
+export interface PortLabel {
+  lines: string[];
+  big: boolean;
+}
+
+/** A port label cell: `lines` drawn big or small. */
+export const labelCell = (big: boolean, ...lines: string[]): PortLabel => ({ lines, big });
+
+/**
+ * A dug-out Network port's label cells, left to right, by port width:
+ * 2 → [tech, "in use/Capacity" over "≤Lmax"]; 3 → [tech, "in use/Capacity", "≤Lmax"];
+ * 4 → [tech, speed, "in use/Capacity", "≤Lmax"]. Capacity and max Level are big.
+ */
+export function portLabels(port: PortState, cells: number): PortLabel[] {
   const tech = networkTech(port.tech);
-  const name = PORT_TECH_SHORT[tech.id];
+  const name = labelCell(false, PORT_TECH_SHORT[tech.id]);
   const use = `${port.passed}/${portCapacity(port.level)}`;
   const max = `≤L${tech.maxDwarfLevel}`;
-  return padTo(cells <= 2 ? [name, `${use} ${max}`] : cells === 3 ? [name, use, max] : [name, portSpeed(port), use, max], cells);
+  const out =
+    cells <= 2 ? [name, labelCell(true, use, max)]
+    : cells === 3 ? [name, labelCell(true, use), labelCell(true, max)]
+    : [name, labelCell(false, portSpeed(port)), labelCell(true, use), labelCell(true, max)];
+  return padTo(out, cells, () => labelCell(false));
 }

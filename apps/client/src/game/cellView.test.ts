@@ -3,6 +3,7 @@ import { bufferCap, getDeviceModel, NETWORK_TECHS, type Block, type LevelDef } f
 import { dig, produceFor } from '../state/actions.ts';
 import { deviceLevels, EXIT, levels, makeLevelState, type Dwarf, type LevelState } from '../state/world.ts';
 import { cellView, portView, type ViewContext } from './cellView.ts';
+import { labelCell, type PortLabel } from './labels.ts';
 
 /**
  * A tiny hand-built 4×3 Mine (row-major cell numbers), as in state/actions.test.ts:
@@ -249,14 +250,14 @@ describe('portView', () => {
     const lvl = makeLevelState(fixture());
     lvl.exit.value = { buried: false, remaining: 0 };
     expect(portView(lvl, 2, ctx())).toEqual({
-      glyph: '', tiny: null, title: 'Network port', classes: ['wall', 'wall-port', 'wall-port-open'], label: '0/1 ≤L4',
+      glyph: '', tiny: null, title: 'Network port', classes: ['wall', 'wall-port', 'wall-port-open'], label: labelCell(true, '0/1', '≤L4'),
     });
   });
 
-  it('labels a dug-out 2-wide Network port with its technology, then in use/Capacity and highest Level', () => {
+  it('labels a dug-out 2-wide Network port with its technology, then in use/Capacity stacked over highest Level', () => {
     const lvl = makeLevelState(fixture());
     lvl.exit.value = { buried: false, remaining: 0 };
-    expect([1, 2].map((x) => portView(lvl, x, ctx()).label)).toEqual(['RS-232', '0/1 ≤L4']);
+    expect([1, 2].map((x) => portView(lvl, x, ctx()).label)).toEqual([labelCell(false, 'RS-232'), labelCell(true, '0/1', '≤L4')]);
     expect(portView(lvl, 1, ctx()).glyph).toBe('');
   });
 
@@ -268,15 +269,17 @@ describe('portView', () => {
     lvl.exit.value = { buried: false, remaining: 0 };
     return lvl;
   }
-  const labels = (lvl: LevelState) => Array.from({ length: lvl.def.exit.width }, (_, k) => portView(lvl, lvl.def.exit.x + k, ctx()).label);
+  const cellsOf = (lvl: LevelState) => Array.from({ length: lvl.def.exit.width }, (_, k) => portView(lvl, lvl.def.exit.x + k, ctx()).label!);
+  /** Each cell's text, its lines joined by a space. */
+  const labels = (lvl: LevelState) => cellsOf(lvl).map((l: PortLabel) => l.lines.join(' '));
 
   it('spreads the labels over a 3-wide port', () => {
-    expect(labels(openPort(3))).toEqual(['RS-232', '0/1', '≤L4']);
+    expect(cellsOf(openPort(3))).toEqual([labelCell(false, 'RS-232'), labelCell(true, '0/1'), labelCell(true, '≤L4')]);
   });
 
   it('adds the port speed on a 4-wide port', () => {
     const lvl = openPort(4);
-    expect(labels(lvl)).toEqual(['RS-232', '300 baud', '0/1', '≤L4']);
+    expect(cellsOf(lvl)).toEqual([labelCell(false, 'RS-232'), labelCell(false, '300 baud'), labelCell(true, '0/1'), labelCell(true, '≤L4')]);
     lvl.port.value = { ...lvl.port.value, level: 4 };
     expect(labels(lvl)).toEqual(['RS-232', '9600 baud', '0/3', '≤L4']);
   });
@@ -325,7 +328,7 @@ describe('portView', () => {
     expect([1, 2].map((x) => portView(lvl, x, ctx()).label)).toEqual([undefined, undefined]);
     lvl.exit.value = { buried: false, remaining: 0 };
     const views = [1, 2].map((x) => portView(lvl, x, ctx()));
-    expect(views.map((v) => v.label)).toEqual(['USB', '']);
+    expect(views.map((v) => v.label)).toEqual([labelCell(false, 'USB'), labelCell(false)]);
     expect(views.map((v) => v.corner)).toEqual([undefined, undefined]);
   });
 

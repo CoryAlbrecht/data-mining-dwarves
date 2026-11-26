@@ -1,7 +1,7 @@
 import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block } from '@dmd/shared';
 import { EXIT, levelIn, type Dwarf, type LevelState } from '../state/world.ts';
 import { formatBytes, formatDuration } from './format.ts';
-import { deviceLabels, portLabels } from './labels.ts';
+import { deviceLabels, labelCell, portLabels, type PortLabel } from './labels.ts';
 
 /**
  * The rest of the world a cell's look depends on, passed in so the cell-view functions stay pure.
@@ -25,8 +25,8 @@ export interface CellView {
   classes: string[];
   /** The dwarf standing on the cell; when set, the grid draws it instead of glyph and tiny. */
   dwarf?: Dwarf;
-  /** Small label text drawn in place of the glyph (a dug-out port's cells). */
-  label?: string;
+  /** Label text drawn in place of the glyph (a dug-out port's cells). */
+  label?: PortLabel;
   /** Small mark in the top-right corner (⇅ on a port with duplex). */
   corner?: string;
   /** How much of this cell a producing Device's Buffer level covers, bottom up: 0..1. */
@@ -164,9 +164,9 @@ function portLabel(lvl: LevelState, k: number, v: CellView): void {
   const port = lvl.port.value;
   v.glyph = '';
   if (exit.kind === 'usb') {
-    v.label = k === 0 ? 'USB' : '';
+    v.label = k === 0 ? labelCell(false, 'USB') : labelCell(false);
     return;
   }
-  v.label = portLabels(port, exit.width)[k] ?? '';
+  v.label = portLabels(port, exit.width)[k] ?? labelCell(false);
   if (k === 0 && port.duplex) v.corner = '⇅';
 }

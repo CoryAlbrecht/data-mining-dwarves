@@ -112,6 +112,13 @@ button { font: inherit; color: inherit; }
 .wall .glyph.port-label {
   transform: none; font-size: min(34cqh, calc(180cqw / var(--chars))); letter-spacing: -0.02em; white-space: nowrap; color: var(--ink);
 }
+/* Capacity and max Level: ~40% bigger. The width limit allows 0.6em per character (0.5em on CRT,
+   where ≤ falls back to half-width Unifont), so the longest label still fits. A 2-wide port stacks
+   the two in one cell, each line at most half the cell's height. */
+.wall .glyph.port-label-big {
+  display: inline-flex; flex-direction: column; align-items: center;
+  font-size: min(48cqh, calc(155cqw / var(--chars)));
+}
 .corner { position: absolute; top: 0; right: 1px; font-size: 25cqh; line-height: 1; color: var(--ink); }
 
 .cell { cursor: pointer; color: var(--ink-dim); }
@@ -262,6 +269,8 @@ button { font: inherit; color: inherit; }
 .theme-crt .tiny, .theme-crt .cell-label .glyph { font-family: var(--crt-face), 'DMD Unifont', monospace; }
 .theme-crt .cell-label .glyph { font-size: 40cqh; }
 .theme-crt .wall .glyph.port-label { font-family: var(--crt-face), 'DMD Unifont', monospace; font-size: min(40cqh, calc(180cqw / var(--chars))); }
+.theme-crt .wall .glyph.port-label-big { font-size: min(56cqh, calc(195cqw / var(--chars))); }
+.theme-crt .wall .glyph.port-label-big.port-label-stack { font-size: min(48cqh, calc(195cqw / var(--chars))); }
 .theme-crt .tiny { font-size: 38cqh; text-shadow: none; }
 .theme-crt .panel-actions button { border-radius: 0; font-size: 1rem; }
 .theme-crt .panel h3 { font-size: 1.15rem; font-weight: 400; }

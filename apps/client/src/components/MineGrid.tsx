@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { cellView, portView, type CellView, type ViewContext } from '../game/cellView.ts';
+import type { PortLabel } from '../game/labels.ts';
 import { tapCell, tapExit } from '../state/actions.ts';
 import { frame } from '../state/clock.ts';
 import { deviceLevels, dwarves, type LevelState } from '../state/world.ts';
@@ -10,6 +11,20 @@ function Wall({ glyph, className = '', ...rest }: { glyph: string } & HTMLAttrib
     <div className={`wall ${className}`} {...rest}>
       <span className="glyph">{glyph}</span>
     </div>
+  );
+}
+
+/**
+ * A dug-out port cell's label: one line, or two stacked. --chars (the longest line) shrinks the
+ * text to fit across the cell; big cells (Capacity, max Level) get a larger size.
+ */
+function PortLabelText({ label: { lines, big } }: { label: PortLabel }) {
+  const chars = Math.max(big ? 3 : 4, ...lines.map((l) => l.length));
+  const cls = ['glyph', 'port-label', big && 'port-label-big', lines.length > 1 && 'port-label-stack'].filter(Boolean).join(' ');
+  return (
+    <span className={cls} style={{ '--chars': chars } as CSSProperties}>
+      {lines.map((l, i) => <span key={i}>{l}</span>)}
+    </span>
   );
 }
 
@@ -32,11 +47,7 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
       const v = portView(lvl, x, ctx);
       cells.push(
         <div key={`t${x}`} className={v.classes.join(' ')} title={v.title || undefined} data-depth={depth} data-exit="" onClick={() => tapExit(depth)}>
-          {v.label === undefined ? <span className="glyph">{v.glyph}</span> : (
-            <span className="glyph port-label" style={{ '--chars': Math.max(4, v.label.length) } as CSSProperties}>
-              {v.label}
-            </span>
-          )}
+          {v.label === undefined ? <span className="glyph">{v.glyph}</span> : <PortLabelText label={v.label} />}
           {v.corner && <span className="corner">{v.corner}</span>}
           <DigBar v={v} />
         </div>,
