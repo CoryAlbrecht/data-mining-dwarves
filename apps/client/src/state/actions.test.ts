@@ -39,7 +39,7 @@ function fixture(depth: number): LevelDef {
         rock: ['▓', '▒', '░'], encrypted: ['╬'], item: '¤', dwarf: ['☺'],
         wall: { h: '═', v: '║', tl: '╔', tr: '╗', bl: '╚', br: '╝' },
         gapL: '╡', gapR: '╞', portBuried: '▒', portOpen: ' ',
-        collect: '⇩', collectFull: ['⇩'], spawn: '+', upgrade: '⇧',
+        collect: '⇩', spawn: '+', upgrade: '⇧',
       },
     },
   };
