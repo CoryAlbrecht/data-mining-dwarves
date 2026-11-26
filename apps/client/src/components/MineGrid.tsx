@@ -1,17 +1,9 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
-import { bufferCap, getDeviceModel, MONSTERS, secondsToDig, type Block, type LevelGlyphs } from '@dmd/shared';
-import { formatBytes, formatDuration } from '../game/format.ts';
+import { cellView, portView, type CellView, type ViewContext } from '../game/cellView.ts';
 import { tapCell, tapExit } from '../state/actions.ts';
 import { frame } from '../state/clock.ts';
-import { dwarfAt, levelOf, dialogSubject, type LevelState } from '../state/world.ts';
+import { deviceLevels, dwarves, type LevelState } from '../state/world.ts';
 import { DwarfToken } from './DwarfToken.tsx';
-import { deviceLabels } from './hardware.ts';
-
-/** Pick a wear glyph: untouched → nearly dug out. */
-function worn(glyphs: string[], remaining: number, size: number): string {
-  const used = 1 - remaining / size;
-  return glyphs[Math.min(glyphs.length - 1, Math.floor(used * glyphs.length))]!;
-}
 
 function Wall({ glyph, className = '', ...rest }: { glyph: string } & HTMLAttributes<HTMLDivElement>) {
   return (
@@ -26,34 +18,28 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
   const { def } = lvl;
   const { width, height, depth } = def;
   const g = def.theme.glyphs;
-  const f = frame.value;
-  const exit = lvl.exit.value;
+  const ctx: ViewContext = { dwarves: dwarves.value, deviceLevels: deviceLevels.value };
   const inPort = (x: number) => x >= def.exit.x && x < def.exit.x + def.exit.width;
-  const labelsFor = new Map<number, string[]>();
 
   const cells: ReactNode[] = [];
 
   // ── Top Wall, with the port's stretch ──
-  const portGlyph = exit.buried ? worn([g.portBuried, g.portBuried, g.portBuried], exit.remaining, def.exit.size) : g.portOpen;
-  const portTitle =
-    def.exit.kind === 'usb'
-      ? `USB port${exit.buried ? `: ${formatBytes(exit.remaining)} of rock in the way` : ': walk a dwarf under it to sneakernet'}`
-      : `Network port${exit.buried ? `: ${formatBytes(exit.remaining)} of rock in the way` : ''}`;
   for (let x = -1; x <= width; x++) {
     let glyph = x === -1 ? g.wall.tl : x === width ? g.wall.tr : g.wall.h;
     if (x === def.exit.x - 1) glyph = g.gapL;
     if (x === def.exit.x + def.exit.width) glyph = g.gapR;
     if (x >= 0 && x < width && inPort(x)) {
+      const v = portView(lvl, x, ctx);
       cells.push(
-        <Wall
-          key={`t${x}`}
-          glyph={portGlyph}
-          className={`wall-port${exit.buried ? '' : ' wall-port-open'}${dialogSubject.value?.kind === 'port' && dialogSubject.value.depth === depth ? ' wall-selected' : ''}`}
-          title={portTitle}
-          data-depth={depth}
-          data-exit=""
-          onClick={() => tapExit(depth)}
-        />,
+        <div key={`t${x}`} className={v.classes.join(' ')} title={v.title || undefined} data-depth={depth} data-exit="" onClick={() => tapExit(depth)}>
+          {v.label === undefined ? <span className="glyph">{v.glyph}</span> : (
+            <span className="glyph port-label" style={{ '--chars': Math.max(4, v.label.length) } as CSSProperties}>
+              {v.label}
+            </span>
+          )}
+          {v.corner && <span className="corner">{v.corner}</span>}
+          <DigBar v={v} />
+        </div>,
       );
     } else {
       cells.push(<Wall key={`t${x}`} glyph={glyph} />);
@@ -65,7 +51,7 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
     cells.push(<Wall key={`l${y}`} glyph={g.wall.v} />);
     for (let x = 0; x < width; x++) {
       const i = y * width + x;
-      cells.push(<Cell key={i} lvl={lvl} i={i} glyphs={g} f={f} labelsFor={labelsFor} />);
+      cells.push(<Cell key={i} lvl={lvl} i={i} ctx={ctx} />);
     }
     cells.push(<Wall key={`r${y}`} glyph={g.wall.v} />);
   }
@@ -86,105 +72,34 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
   );
 }
 
-function Cell({
-  lvl,
-  i,
-  glyphs: g,
-  f,
-  labelsFor,
-}: {
-  lvl: LevelState;
-  i: number;
-  glyphs: LevelGlyphs;
-  f: number;
-  labelsFor: Map<number, string[]>;
-}) {
+/** One Mine cell: draws what cellView() says, or the dwarf standing on it. */
+function Cell({ lvl, i, ctx }: { lvl: LevelState; i: number; ctx: ViewContext }) {
+  const v = cellView(lvl, i, ctx);
   const depth = lvl.def.depth;
-  const b = lvl.blocks.value[i]!;
-  const dwarf = dwarfAt(depth, i);
-  let glyph = '';
-  let tiny: string | number | null = null;
-  let title = '';
-  const classes = ['cell', `cell-${b.kind}`];
-  if (lvl.exposed.value.has(i) || b.kind === 'empty' || b.kind === 'item') classes.push('cell-lit');
-
-  switch (b.kind) {
-    case 'empty':
-      break;
-    case 'item':
-      glyph = g.item;
-      title = b.loot.kind === 'bytes' ? `${formatBytes(b.loot.amount)}: walk onto it to pick it up` : 'A chip: walk onto it to pick it up';
-      break;
-    case 'rock':
-      glyph = worn(b.encrypted ? g.encrypted : g.rock, b.remaining, b.size);
-      tiny = b.level;
-      title = `${b.encrypted ? 'Encrypted bit-rock' : 'Bit-rock'}, Level ${b.level}: ${formatBytes(b.remaining)} left (${formatDuration(secondsToDig(1, b.remaining))} for one L1 dwarf)`;
-      break;
-    case 'monster':
-      glyph = MONSTERS[b.monster].glyph;
-      tiny = b.hp;
-      title = `${MONSTERS[b.monster].name}: ${MONSTERS[b.monster].pun} Tap to fight.`;
-      break;
-    case 'device': {
-      const def = lvl.def.devices[b.device]!;
-      const state = lvl.devices.value[b.device]!;
-      if (state.buried) {
-        glyph = worn(g.rock, state.remaining, def.size);
-        if (b.role === 'upgrade') tiny = def.level;
-        title = `Buried hardware, Level ${def.level}: ${formatBytes(state.remaining)} left`;
-        classes.push('cell-buried');
-        break;
-      }
-      classes.push('cell-hardware');
-      const model = getDeviceModel(def.model);
-      const level = levelOf(def.model);
-      if (b.role === 'collect') {
-        if (model.kind === 'forge') glyph = g.spawn;
-        else {
-          const full = (lvl.buffers.value[b.device] ?? 0) >= bufferCap(model, level) - 1e-6;
-          const auto = lvl.automated.value.includes(b.device);
-          glyph = full && !auto ? g.collectFull[Math.floor(f / 4) % g.collectFull.length]! : g.collect;
-          if (full && !auto) classes.push('cell-full');
-          if (auto) tiny = '⟳';
-        }
-        title = model.kind === 'forge' ? 'Spawn a dwarf' : `Collect ${formatBytes(lvl.buffers.value[b.device] ?? 0)}`;
-      } else if (b.role === 'upgrade') {
-        glyph = g.upgrade;
-        tiny = level;
-        title = `Upgrade ${model.name} (Level ${level})`;
-      } else {
-        if (!labelsFor.has(b.device)) {
-          const n = lvl.blocks.value.filter((c) => c.kind === 'device' && c.device === b.device && c.role === 'label').length;
-          labelsFor.set(b.device, deviceLabels(def.model, n));
-        }
-        glyph = labelsFor.get(b.device)![b.label] ?? '';
-        classes.push('cell-label');
-        title = `${model.name}: tap for details`;
-      }
-      const open = dialogSubject.value;
-      if (open?.kind === 'device' && open.depth === depth && open.device === b.device) classes.push('cell-selected');
-      break;
-    }
-  }
-
   return (
     <div
       role="gridcell"
       data-depth={depth}
       data-cell={i}
-      className={classes.join(' ')}
-      title={title || undefined}
+      className={v.classes.join(' ')}
+      style={v.fill === undefined ? undefined : ({ '--fill': v.fill } as CSSProperties)}
+      title={v.title || undefined}
       onClick={() => tapCell(depth, i)}
     >
-      {dwarf ? (
-        <DwarfToken d={dwarf} frames={g.dwarf} f={f} />
+      {v.dwarf ? (
+        <DwarfToken d={v.dwarf} frames={lvl.def.theme.glyphs.dwarf} f={frame.value} />
       ) : (
         <>
-          <span className="glyph">{glyph}</span>
-          {tiny !== null && <small className="tiny">{tiny}</small>}
+          <span className="glyph">{v.glyph}</span>
+          {v.tiny !== null && <small className="tiny">{v.tiny}</small>}
         </>
       )}
+      <DigBar v={v} />
     </div>
   );
 }
 
+/** The dig bar along the top edge of a cell being dug, its width the fraction left. */
+function DigBar({ v }: { v: CellView }) {
+  return v.digBar === undefined ? null : <span className="dig-bar" style={{ width: `${v.digBar * 100}%` }} />;
+}

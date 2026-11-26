@@ -13,7 +13,7 @@ export interface NetworkTech {
   speeds: readonly string[];
 }
 
-export const NETWORK_TECHS: readonly NetworkTech[] = [
+export const NETWORK_TECHS = [
   {
     id: 'net:serial',
     name: 'Serial Port',
@@ -25,7 +25,10 @@ export const NETWORK_TECHS: readonly NetworkTech[] = [
   { id: 'net:ethernet-10m', name: '10BASE-T Ethernet', maxDwarfLevel: 7, speeds: ['10 Mbps'] },
   { id: 'net:fast-ethernet', name: 'Fast Ethernet', maxDwarfLevel: 8, speeds: ['100 Mbps'] },
   { id: 'net:gigabit', name: 'Gigabit Ethernet', maxDwarfLevel: 9, speeds: ['1 Gbps'] },
-];
+] as const satisfies readonly NetworkTech[];
+
+/** The id of one Port technology in NETWORK_TECHS. */
+export type NetworkTechId = (typeof NETWORK_TECHS)[number]['id'];
 
 /** Chip that lets dwarves travel back up through a port. */
 export const DUPLEX_CHIP = 'duplex';

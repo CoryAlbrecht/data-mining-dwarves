@@ -111,8 +111,13 @@ export function isMinable(lvl: LevelState, i: number): boolean {
   return b?.kind === 'device' && (lvl.devices.value[b.device]?.buried ?? false);
 }
 
+/** A Device model's Level in `levels` (a model not listed there is Level 1). */
+export function levelIn(levels: Readonly<Record<string, number>>, model: string): number {
+  return levels[model] ?? 1;
+}
+
 export function levelOf(model: string): number {
-  return deviceLevels.value[model] ?? 1;
+  return levelIn(deviceLevels.value, model);
 }
 
 /** Cell just inside the Entry, where dwarves arrive. */

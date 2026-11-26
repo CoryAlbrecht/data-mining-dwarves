@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Block, LevelDef } from '@dmd/shared';
+import { deviceRate, getDeviceModel, type Block, type LevelDef } from '@dmd/shared';
 
 /**
  * A tiny hand-built 4×3 Mine (row-major cell numbers):
@@ -222,6 +222,47 @@ describe('Devices', () => {
     W.bytes.value = 1000;
     A.buyDwarf(1);
     expect(dwarves.value.at(-1)).toMatchObject({ pos: 9, level: 1 });
+  });
+});
+
+describe('a cron job empties a full Buffer', () => {
+  // The fixture's 4004 CPU at Level 1: its Buffer holds 300 s of output.
+  const cpu = getDeviceModel('cpu:4004-cpu');
+  const rate = deviceRate(cpu, 1);
+  const cap = rate * 300;
+
+  beforeEach(() => {
+    W.deviceLevels.value = {};
+    const lvl = levelAt(1)!;
+    lvl.devices.value = [{ buried: false, remaining: 0 }];
+    lvl.buffers.value = [0];
+    lvl.automated.value = [0];
+  });
+
+  it('fills the Buffer below the cap without earning', () => {
+    A.produceFor(100);
+    expect(levelAt(1)!.buffers.value[0]).toBeCloseTo(rate * 100);
+    expect(W.bytes.value).toBe(0);
+  });
+
+  it('earns exactly the cap when the Buffer fills, and keeps the overflow', () => {
+    A.produceFor(250);
+    A.produceFor(100);
+    expect(W.bytes.value).toBeCloseTo(cap);
+    expect(levelAt(1)!.buffers.value[0]).toBeCloseTo(rate * 50);
+  });
+
+  it('earns every full Buffer over a long stretch and leaves the remainder', () => {
+    A.produceFor(1000);
+    expect(W.bytes.value).toBeCloseTo(cap * 3);
+    expect(levelAt(1)!.buffers.value[0]).toBeCloseTo(rate * 100);
+  });
+
+  it('leaves a Device with no cron job capped at a full Buffer', () => {
+    levelAt(1)!.automated.value = [];
+    A.produceFor(1000);
+    expect(W.bytes.value).toBe(0);
+    expect(levelAt(1)!.buffers.value[0]).toBeCloseTo(cap);
   });
 });
 

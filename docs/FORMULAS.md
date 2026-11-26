@@ -434,7 +434,9 @@ bufferCap(model, L)   = deviceRate(model, L) · 300 s
 
 - A Device's Level belongs to the **model**, across the whole game.
 - Output fills the Buffer up to its cap, then stops.
-- A cron job (1 chip, per Device) sends output straight to your bytes, with no cap.
+- A cron job (1 chip, per Device) empties the Buffer into your bytes each time it reaches its cap.
+  Output past the cap carries over into the emptied Buffer, so nothing is lost. Scheduling the
+  cron job also collects whatever the Buffer holds at that moment.
 - Devices on every Mine in the Chain keep producing, buried ones excepted.
 - Collecting needs at least `ECONOMY.minCollect = 0.5` B in the Buffer.
 
@@ -564,8 +566,8 @@ The next Computer's Rock curve starts at the handover median (§4), and its hard
 | Collect minimum | 0.5 B | `ECONOMY.minCollect` in `packages/shared/src/devices.ts` |
 | Dev fast-forward | `?speed=N` multiplies every tick | `SPEED` in `apps/client/src/state/loop.ts` |
 
-Offline time credits only Device output (Buffers up to their caps, cron jobs in full). Dwarves
-don't dig while the game is closed.
+Offline time credits only Device output (Buffers up to their caps; a cron job earns every full
+Buffer and leaves the remainder in the Buffer). Dwarves don't dig while the game is closed.
 
 Bytes are displayed with 1024-based units (`1536 → "1.5 kB"`), in
 `apps/client/src/game/format.ts`.

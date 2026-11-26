@@ -618,7 +618,10 @@ export function installDuplex(depth: number) {
   say(`Full duplex! Dwarves in Mine ${depth + 1} can walk down through its Entry to come back up.`);
 }
 
-/** Fill Device buffers as if `seconds` passed (also used for offline time). */
+/**
+ * Fill Device buffers as if `seconds` passed (also used for offline time).
+ * A cron job empties an automated Device's Buffer into your bytes each time it fills.
+ */
 export function produceFor(seconds: number) {
   batch(() => {
     for (const lvl of levels.value) {
@@ -629,15 +632,21 @@ export function produceFor(seconds: number) {
         const model = getDeviceModel(d.model);
         if (model.baseRate === 0) return;
         const level = levelOf(d.model);
-        const amount = deviceRate(model, level) * seconds;
+        const cap = bufferCap(model, level);
+        let v = (buf[id] ?? 0) + deviceRate(model, level) * seconds;
         if (lvl.automated.value.includes(id)) {
-          earn(amount);
-        } else {
-          const v = Math.min(bufferCap(model, level), (buf[id] ?? 0) + amount);
-          if (v !== buf[id]) {
-            buf[id] = v;
-            changed = true;
+          // A cron job empties every full Buffer; output past the cap carries over.
+          const full = Math.floor(v / cap);
+          if (full > 0) {
+            earn(full * cap);
+            v -= full * cap;
           }
+        } else {
+          v = Math.min(cap, v);
+        }
+        if (v !== buf[id]) {
+          buf[id] = v;
+          changed = true;
         }
       });
       if (changed) lvl.buffers.value = buf;

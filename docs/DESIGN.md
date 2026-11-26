@@ -19,7 +19,8 @@ rules in words.
 5. **Chips work like cards.** Spending N chips of a model raises that device's **Level**. It's
    still a 4004, but it produces more bytes.
 6. **Automation** comes from a special drop: a **cron job** chip. Applying one to a device makes it
-   collect its own output.
+   collect its own output: the Device still fills its **Buffer**, and each time the Buffer is full the
+   cron job empties it into your bytes, carrying any overflow into the emptied Buffer.
 
 ## Mine layout
 
@@ -61,6 +62,13 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   stack of three times the usual chips, usually for this Mine's Devices.
 - **Rocks show only a tiny Level number**, and what's inside is a surprise. The glyph wears down
   (▓ → ▒ → ░) as it's dug.
+- **Dig bar:** while at least one dwarf is digging a bit-rock, an encrypted bit-rock, a buried
+  Device or the Network/USB port, a thin bar in the Theme's ink colour runs along the top edge of
+  the cell (clear of the tiny Level number). Its width is the bytes left over the initial size, so
+  it shrinks toward the left as the combined Strikes of every dwarf on it land. A buried Device
+  shows its whole fraction on every one of its cells; the port shows it on all of its Wall cells.
+  The bar goes once no dwarf is digging the cell, even half-dug; the wear glyph still shows the
+  damage.
 - **Hardness:** the port has the hardest Level on the curve, and buried Devices have the
   second-hardest.
 - **Monsters** are scattered at random, never in the bottom 2 rows.
@@ -86,8 +94,15 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   It's modal: the Mine is dimmed and can't be tapped, but the game keeps running. Only one is open
   at a time. It stays open after an action and updates live. Escape, ✕ or tapping the dimmed
   backdrop closes it. While it's open the game keys rest, and Escape closes only the dialog. It
-  wears the Theme of the Mine it came from. The Entry has no dialog.
-- A Device with no cron job slowly cycles its collect glyph when it's **completely full**.
+  wears the Theme of the Mine it came from. The Entry has no dialog. Neither the Device nor the
+  port is highlighted while its dialog is open: there's nothing more to do with it once tapped.
+- Every producing Device **fills like a tank** as its Buffer grows: the level (Buffer over its cap)
+  rises smoothly across the whole Device, bottom row first, so a cell can be partly filled. The
+  empty part is the faint Device background and the filled part a little stronger. Automated
+  Devices fill too, then empty at once when their cron job collects a full Buffer; fork()
+  produces nothing and doesn't fill.
+- When a Device with no cron job is **completely full**, its Collect button gives one soft pulse
+  every 4 seconds. Reduced motion turns the pulse off.
 
 ## Look
 
@@ -95,7 +110,7 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - On the green CRT, **everything inside the Mine is phosphor green**, with only brightness varying.
 - **No emoji** for now; any other character in the Basic Multilingual Plane is fine.
 - Dwarves **dance** through the Theme's glyph frames while mining. The **selected dwarf blinks**
-  like a cursor.
+  like a cursor; it's the only thing in a Mine shown as selected.
 
 ## Rocks and digging
 
@@ -198,6 +213,19 @@ Each Level up costs about 1.5× the chips of the one before: 2, 3, 5, 7, 11, …
   sent by mistake, or brings abandoned dwarves along later.
 - Devices in earlier Mines keep producing. You scroll back up to collect from them, or automate
   them.
+- **Port labels:** a buried port shows rock with no labels. Once dug out, its cells show small
+  label text (like a Device's label cells) instead of the open-port glyph. Tapping it and walking
+  dwarves up into it work as before. By the port's width:
+  - 2 cells: `[tech] [in use/Capacity ≤L<max>]`
+  - 3 cells: `[tech] [in use/Capacity] [≤L<max>]`
+  - 4 cells: `[tech] [speed] [in use/Capacity] [≤L<max>]`
+
+  *In use* is the dwarves through the port now, *max* is the highest dwarf Level the Port
+  technology passes, and *speed* is the port's speed (e.g. `9600 baud`). The technology is shown
+  short: `RS-232`, `1Mb ETH`, `TOKEN`, `10BASE-T`, `FAST ETH`, `GbE`. With duplex installed, a
+  small `⇅` sits in the top-right corner of the leftmost cell. A dug-out **USB port** just shows
+  `USB` in its first cell, with no count, Level or duplex mark. The labels update as soon as
+  anything they show changes.
 
 ## Computers and sneakernet
 

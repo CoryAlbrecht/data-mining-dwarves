@@ -61,7 +61,7 @@ A fixed piece of hardware mounted against a Mine's side, 2×2 cells or larger: C
 _Avoid_: Peripheral, socket, slot
 
 **Buffer**:
-The bytes a producing Device has made but nobody has collected yet. It fills up to a cap and then stops filling until the player collects, unless a cron job collects for it.
+The bytes a producing Device has made but nobody has collected yet. It fills up to a cap and then stops filling until the player collects. An automated Device's Buffer fills the same way, but its cron job empties it each time it is full.
 _Avoid_: Storage (that's a kind of Device), bank
 
 **fork()**:
@@ -103,7 +103,7 @@ A card-like collectible for one specific Device model, Network technology, or sp
 _Avoid_: Card
 
 **Cron job**:
-A special chip that automates a Device so it collects its own bytes.
+A special chip that automates a Device so it collects its own bytes: each time the Device's Buffer is full, the cron job empties it into the player's bytes.
 
 **Duplex chip**:
 A special chip that lets dwarves travel back up through a Network port.
