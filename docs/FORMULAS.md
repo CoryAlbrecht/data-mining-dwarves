@@ -564,7 +564,7 @@ The next Computer's Rock curve starts at the handover median (§4), and its hard
 | Catch-up per tick after a backgrounded tab | at most 5 s | `CLOCK.maxCatchUpSeconds` in `packages/shared/src/clock.ts` |
 | Offline production credited on load | at most 8 h | `CLOCK.maxOfflineSeconds` in `packages/shared/src/clock.ts` |
 | Collect minimum | 0.5 B | `ECONOMY.minCollect` in `packages/shared/src/devices.ts` |
-| Dev fast-forward | `?speed=N` multiplies every tick | `SPEED` in `apps/client/src/state/loop.ts` |
+| Dev fast-forward | `?speed=N` multiplies every tick, except held-key walking (real time) | `SPEED` in `apps/client/src/state/loop.ts` |
 
 Offline time credits only Device output (Buffers up to their caps; a cron job earns every full
 Buffer and leaves the remainder in the Buffer). Dwarves don't dig while the game is closed.

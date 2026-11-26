@@ -377,7 +377,7 @@ describe('holding a key walks the Selected dwarf', () => {
     W.selectedDwarf.value = 1;
   });
 
-  it('steps at once, then one cell per 333 ms of game time, ignoring key auto-repeat', () => {
+  it('steps at once, then one cell per 333 ms, ignoring key auto-repeat', () => {
     press('d');
     expect(get(1)!.pos).toBe(9);
     for (let i = 0; i < 5; i++) press('d', { repeat: true }); // the OS repeats much faster
@@ -388,6 +388,14 @@ describe('holding a key walks the Selected dwarf', () => {
     expect(get(1)!.pos).toBe(10);
     tick(0.333);
     expect(get(1)!.pos).toBe(11);
+  });
+
+  it('paces a held key by real time, not the dev fast-forward (?speed=N)', () => {
+    press('d'); // 8 → 9
+    tick(2, 0.1); // 2 game seconds pass in a 100 ms real tick: still a tap
+    expect(get(1)!.pos).toBe(9);
+    tick(2, 0.24); // 0.34 real seconds held: one more step, not six
+    expect(get(1)!.pos).toBe(10);
   });
 
   it('ends the walk when it bumps into a rock and starts mining it, even if the key stays down', () => {

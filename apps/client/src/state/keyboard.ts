@@ -28,7 +28,7 @@ interface HeldKey {
   key: string;
   dir: Direction;
   id: number;
-  /** Game seconds since the dwarf's last step. */
+  /** Real seconds since the dwarf's last step (not sped up by ?speed=N). */
   sinceStep: number;
 }
 let held: HeldKey | null = null;
@@ -89,14 +89,14 @@ export function handleKeyUp(e: { key: string }) {
   if (held?.key === e.key.toLowerCase()) held = null;
 }
 
-/** Called by the game loop: while a direction key is held, step once per WALK_SECONDS. */
-export function walkHeldKey(dt: number) {
+/** Called by the game loop with real seconds: while a direction key is held, step once per WALK_SECONDS. */
+export function walkHeldKey(realDt: number) {
   if (!held) return;
   if (selectedDwarf.value !== held.id || dialogSubject.value) {
     held = null; // deselected (Escape), another dwarf picked, or a dialog opened: stop
     return;
   }
-  held.sinceStep += dt;
+  held.sinceStep += realDt;
   while (held && held.sinceStep >= WALK_SECONDS) {
     held.sinceStep -= WALK_SECONDS;
     if (!walkOneCell(held.id, held.dir)) held = null;

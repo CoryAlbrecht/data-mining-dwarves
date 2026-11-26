@@ -29,13 +29,17 @@ function digKey(lvl: LevelState, target: number): string {
   return b?.kind === 'device' ? `d${b.device}` : `c${target}`;
 }
 
-/** Advance the game by `dt` seconds. */
-export function tick(dt: number) {
+/**
+ * Advance the game by `dt` game seconds. `realDt` is the wall-clock time behind them, which differs
+ * only under the dev fast-forward (?speed=N): held-key walking follows how long a human holds a
+ * key, so it runs on real time.
+ */
+export function tick(dt: number, realDt = dt) {
   batch(() => {
     produceFor(dt);
 
-    // 1. Walk: a held direction key, then dragged paths, one cell per WALK_SECONDS.
-    walkHeldKey(dt);
+    // 1. Walk: a held direction key (real time), then dragged paths, one cell per WALK_SECONDS.
+    walkHeldKey(realDt);
     for (const d of dwarves.value.filter((x) => x.path.length > 0)) {
       let t = (walkClock.get(d.id) ?? 0) + dt;
       while (t >= WALK_SECONDS) {
@@ -95,7 +99,8 @@ export function startLoop(): () => void {
   const id = setInterval(() => {
     const now = performance.now();
     // Cap catch-up after a backgrounded tab; offline time is credited separately.
-    tick(Math.min(CLOCK.maxCatchUpSeconds, (now - last) / 1000) * SPEED);
+    const realDt = Math.min(CLOCK.maxCatchUpSeconds, (now - last) / 1000);
+    tick(realDt * SPEED, realDt);
     last = now;
   }, CLOCK.tickMs);
   return () => clearInterval(id);
