@@ -183,7 +183,7 @@ Source: [`layout.ts`](../packages/shared/src/layout.ts).
 
 ```
 portWidth(c)       = min(4, 2 + c) cells
-startTech(c)       = min(5, c)                     (index into the Network technologies, §7)
+startTech(c)       = technology # min(5, c)        (the Network technologies table, §8)
 deviceFootprint(c) = 2×2 (C1), 2×3 (C2), 3×3 (C3 on)     w × h
 fork() footprint   = 2×2 always
 Mine size          = 8 wide × 12 tall

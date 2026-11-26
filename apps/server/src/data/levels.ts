@@ -23,7 +23,7 @@ import {
   MONSTER_SPAWN,
   MONSTERS,
   mulberry32,
-  NETWORK_TECHS,
+  nextNetworkTech,
   placeOf,
   portSeed,
   portSize,
@@ -230,10 +230,8 @@ export function generateLevel(depth: number): LevelDef {
   // Chips worth finding here: this Mine's producing Devices (most often), fork(), and network chips.
   const deviceIds = hardware.map((d) => d.id);
   const tech = startTech(place.computer);
-  const netChips = [
-    NETWORK_TECHS[tech]!.id,
-    ...(NETWORK_TECHS[tech + 1] && depth >= LOOT.nextTechFromDepth ? [NETWORK_TECHS[tech + 1]!.id] : []),
-  ];
+  const nextTech = nextNetworkTech(tech);
+  const netChips = [tech, ...(nextTech && depth >= LOOT.nextTechFromDepth ? [nextTech.id] : [])];
   // Encrypted bit-rocks: producing Devices twice as likely as fork() or a network chip.
   const encryptedChips = encryptedChipPool(deviceIds, FORGE_ID, netChips);
   const here = new Set(deviceIds);
