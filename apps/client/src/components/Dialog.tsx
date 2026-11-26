@@ -8,7 +8,8 @@ import {
   dwarfPrice,
   FORGE_ID,
   getDeviceModel,
-  NETWORK_TECHS,
+  networkTech,
+  nextNetworkTech,
   portCapacity,
   portSpeed,
 } from '@dmd/shared';
@@ -129,8 +130,8 @@ function PortDetails({ lvl }: { lvl: LevelState }) {
   }
 
   const port = lvl.port.value;
-  const tech = NETWORK_TECHS[port.tech]!;
-  const next = NETWORK_TECHS[port.tech + 1];
+  const tech = networkTech(port.tech);
+  const next = nextNetworkTech(port.tech);
   return (
     <>
       <h3>

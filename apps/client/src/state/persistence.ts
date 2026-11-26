@@ -10,8 +10,8 @@ import {
   levels,
   lifetimeBytes,
   type Dwarf,
-  type SavedLevel,
 } from './world.ts';
+import { migrateSavedLevel, type StoredLevel } from './saveMigrations.ts';
 import { formatBytes } from '../game/format.ts';
 
 const KEY = 'dmd-save-v5'; // v5: walls, multi-cell Devices, holes
@@ -23,7 +23,7 @@ interface SaveFile {
   dwarvesBought: number;
   inventory: Record<string, number>;
   deviceLevels: Record<string, number>;
-  levels: SavedLevel[];
+  levels: StoredLevel[];
   savedAt: number;
 }
 
@@ -74,7 +74,7 @@ export async function initPersistence(): Promise<void> {
     });
     // Levels are deterministic and cached by the service worker, so refetch defs and lay saves on top.
     for (const saved of [...save.levels].sort((a, b) => a.depth - b.depth)) {
-      if (!(await loadLevel(saved.depth, saved))) break;
+      if (!(await loadLevel(saved.depth, migrateSavedLevel(saved)))) break;
     }
     const away = Math.min(CLOCK.maxOfflineSeconds, (Date.now() - save.savedAt) / 1000);
     const before = bytes.value;

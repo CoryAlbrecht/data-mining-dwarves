@@ -1,4 +1,4 @@
-import { getDeviceModel, NETWORK_TECHS, portCapacity, portSpeed, type DeviceKind, type NetworkTechId, type PortState } from '@dmd/shared';
+import { getDeviceModel, networkTech, portCapacity, portSpeed, type DeviceKind, type NetworkTechId, type PortState } from '@dmd/shared';
 
 /** Pads a list of cell labels with empty cells, or cuts it, to exactly `cells` entries. */
 function padTo(out: string[], cells: number): string[] {
@@ -53,7 +53,7 @@ const PORT_TECH_SHORT: Record<NetworkTechId, string> = {
  * 4 → [tech, speed, "in use/Capacity", "≤Lmax"].
  */
 export function portLabels(port: PortState, cells: number): string[] {
-  const tech = NETWORK_TECHS[port.tech]!;
+  const tech = networkTech(port.tech);
   const name = PORT_TECH_SHORT[tech.id];
   const use = `${port.passed}/${portCapacity(port.level)}`;
   const max = `≤L${tech.maxDwarfLevel}`;

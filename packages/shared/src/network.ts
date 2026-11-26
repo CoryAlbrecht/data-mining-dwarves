@@ -30,21 +30,38 @@ export const NETWORK_TECHS = [
 /** The id of one Port technology in NETWORK_TECHS. */
 export type NetworkTechId = (typeof NETWORK_TECHS)[number]['id'];
 
+/** One entry of NETWORK_TECHS, with its id narrowed to a NetworkTechId. */
+export type NetworkTechEntry = (typeof NETWORK_TECHS)[number];
+
+/** The Port technology with this id. */
+export function networkTech(id: NetworkTechId): NetworkTechEntry {
+  return NETWORK_TECHS.find((t) => t.id === id)!;
+}
+
+/** The id of the Port technology at this position in NETWORK_TECHS; past the end, the last one. */
+export function networkTechAt(index: number): NetworkTechId {
+  return NETWORK_TECHS[Math.min(index, NETWORK_TECHS.length - 1)]!.id;
+}
+
+/** The Port technology a port rewires to after this one, or undefined after the last. */
+export function nextNetworkTech(id: NetworkTechId): NetworkTechEntry | undefined {
+  return NETWORK_TECHS[NETWORK_TECHS.findIndex((t) => t.id === id) + 1];
+}
+
 /** Chip that lets dwarves travel back up through a port. */
 export const DUPLEX_CHIP = 'duplex';
 /** Chip that automates a device (it collects its own output). */
 export const CRON_CHIP = 'cron';
 
 export interface PortState {
-  /** Index into NETWORK_TECHS. */
-  tech: number;
+  tech: NetworkTechId;
   level: number;
   duplex: boolean;
   /** Dwarves currently on the far side that came through this port. */
   passed: number;
 }
 
-export const NEW_PORT: PortState = { tech: 0, level: 1, duplex: false, passed: 0 };
+export const NEW_PORT: PortState = { tech: 'net:serial', level: 1, duplex: false, passed: 0 };
 
 /** floor(L/2) + 1 dwarves may be through the port at once. */
 export function portCapacity(level: number): number {
@@ -52,6 +69,6 @@ export function portCapacity(level: number): number {
 }
 
 export function portSpeed(port: PortState): string {
-  const t = NETWORK_TECHS[port.tech]!;
+  const t = networkTech(port.tech);
   return t.speeds[Math.min(port.level, t.speeds.length) - 1]!;
 }

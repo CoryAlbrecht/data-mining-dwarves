@@ -190,7 +190,7 @@ describe('network port in the top Wall', () => {
 
   it('lets dwarves walk back down through the Entry only with duplex', () => {
     openTopRow();
-    levelAt(1)!.port.value = { tech: 0, level: 1, duplex: false, passed: 1 };
+    levelAt(1)!.port.value = { tech: 'net:serial', level: 1, duplex: false, passed: 1 };
     dwarves.value = [dwarf(1, 1, 9, 2)];
     A.moveDwarf(1, 'down');
     expect(get(1)!.depth).toBe(2);
@@ -206,7 +206,7 @@ describe('network port in the top Wall', () => {
     A.upgradePort(1);
     expect(levelAt(1)!.port.value.level).toBe(2);
     A.upgradePortTech(1);
-    expect(levelAt(1)!.port.value).toMatchObject({ tech: 1, level: 1 });
+    expect(levelAt(1)!.port.value).toMatchObject({ tech: 'net:ethernet-1m', level: 1 });
   });
 });
 
