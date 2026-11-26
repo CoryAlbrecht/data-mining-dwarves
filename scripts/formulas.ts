@@ -324,7 +324,7 @@ export function tables(): Table[] {
           '`CLOCK.maxOfflineSeconds` in `packages/shared/src/clock.ts`',
         ],
         ['Collect minimum', `${ECONOMY.minCollect} B`, '`ECONOMY.minCollect` in `packages/shared/src/devices.ts`'],
-        ['Dev fast-forward', '`?speed=N` multiplies every tick', '`SPEED` in `apps/client/src/state/loop.ts`'],
+        ['Dev fast-forward', '`?speed=N` multiplies every tick, except held-key walking (real time)', '`SPEED` in `apps/client/src/state/loop.ts`'],
       ],
     ),
   );
