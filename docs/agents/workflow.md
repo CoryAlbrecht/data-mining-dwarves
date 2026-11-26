@@ -94,16 +94,26 @@ order, oldest-created first within each, and takes the first item that qualifies
 GitHub branch protection is unavailable (private repo without Pro), so a PreToolUse hook,
 `scripts/block-main-checkout.ts`, is the only guard. It blocks:
 
-- `Edit`, `Write` and `NotebookEdit` on paths inside the main checkout. Git-ignored paths and
-  paths outside the repo stay allowed.
-- `git commit`, `push`, `merge`, `rebase`, `reset`, `cherry-pick`, `revert`, `am`, and `pull`
-  without `--ff-only`, while the branch they act on is `main`, in any worktree. The hook follows
-  `git -C <path>`, `--git-dir`, `--work-tree` and an earlier `cd`.
+- `Edit`, `Write` and `NotebookEdit` on paths inside the main checkout, its `.git/` directory
+  included. Git-ignored paths and paths outside the repo stay allowed.
+- `git commit`, `push`, `merge`, `rebase`, `reset`, `cherry-pick`, `revert`, `am`, and `pull`,
+  while the branch they act on is `main`, in any worktree. The hook follows `git -C <path>`,
+  `--git-dir`, `--work-tree`, the `GIT_DIR` and `GIT_WORK_TREE` variables, and an earlier `cd`.
+  The one pull it allows on `main` is a fast-forward from `origin`: `git pull --ff-only`, with no
+  later `--ff` or `--no-ff`, no rebase, and no source but `origin` and `main`.
 - `git push` from any branch when it would update `main`: a `main` or `HEAD:main` refspec, or
   `--all`, `--branches` or `--mirror`.
 - `git rebase <upstream> main` from any branch. Rebasing a branch onto `main`, as in
   `git rebase origin/main`, stays allowed.
+- Moving `main` without a commit, from any branch: `git branch -f main`, renaming or copying a
+  branch onto `main` (`-m`, `-M`, `-c`, `-C`), deleting `main` (`-d`, `-D`), and `git update-ref`
+  on `refs/heads/main` (or on `HEAD` while it is `main`).
 
-It allows `git pull --ff-only` in the main checkout and `gh pr merge`. Known gaps it does not
-cover are tracked in #44. When the hook blocks a command, the fix is a worktree and a branch;
+It sees git called by a path (`/usr/bin/git`) and git inside a `$( … )` or backtick
+substitution. It allows `git pull --ff-only` in the main checkout and `gh pr merge`.
+
+The hook guards against mistakes, not against an agent working around it on purpose. Accepted
+gaps: `git update-ref --stdin`; git run through a script, an alias or `eval`; and
+`git checkout -B main` or `git switch -C main`, which git itself refuses while `main` is checked
+out in the main checkout. When the hook blocks a command, the fix is a worktree and a branch;
 working around the hook breaks the workflow it guards.

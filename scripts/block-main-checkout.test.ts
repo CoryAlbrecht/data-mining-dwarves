@@ -51,6 +51,12 @@ describe('editing files in the main checkout', () => {
     expect(editBlocked('/tmp/x/y.md', linked)).toBe(false);
   });
 
+  it("blocks edits inside the main checkout's .git directory", () => {
+    expect(editBlocked(join(main, '.git/config'), linked)).toBe(true);
+    expect(editBlocked(join(main, '.git/refs/heads/main'), main)).toBe(true);
+    expect(editBlocked(join(main, '.git/hooks/new-hook'), linked)).toBe(true);
+  });
+
   it('allows edits inside a linked worktree, even one nested under the main checkout', () => {
     expect(editBlocked(join(linked, 'README.md'), main)).toBe(false);
     expect(editBlocked(join(linked, 'src/new.ts'), linked)).toBe(false);
@@ -128,6 +134,91 @@ describe('git writes to main', () => {
     expect(gitBlocked('git pull origin main', main)).toBe(true);
     expect(gitBlocked('git pull --ff-only origin main', main)).toBe(false);
     expect(gitBlocked('git pull', linked)).toBe(false);
+  });
+
+  it('blocks a pull on main whose --ff-only a later --ff or --no-ff overrides', () => {
+    expect(gitBlocked('git pull --ff-only --no-ff', main)).toBe(true);
+    expect(gitBlocked('git pull --ff-only --ff origin main', main)).toBe(true);
+    expect(gitBlocked('git pull --ff-only --rebase', main)).toBe(true);
+    expect(gitBlocked('git pull --no-ff --ff-only', main)).toBe(false);
+  });
+
+  it('blocks a --ff-only pull on main from anything but origin main', () => {
+    expect(gitBlocked('git pull --ff-only . feat/x', main)).toBe(true);
+    expect(gitBlocked('git pull --ff-only origin feat/x', main)).toBe(true);
+    expect(gitBlocked(`git pull --ff-only ${linked} feat/x`, main)).toBe(true);
+    expect(gitBlocked('git pull --ff-only origin', main)).toBe(false);
+    expect(gitBlocked('git pull --ff-only origin refs/heads/main', main)).toBe(false);
+  });
+
+  it('recognises git called by a path', () => {
+    expect(gitBlocked('/usr/bin/git commit -m x', main)).toBe(true);
+    expect(gitBlocked(`/usr/bin/git -C ${main} merge feat/x`, linked)).toBe(true);
+    expect(gitBlocked('/usr/bin/git commit -m x', linked)).toBe(false);
+  });
+
+  it('sees git inside a command substitution', () => {
+    expect(gitBlocked('x=$(git commit -m x)', main)).toBe(true);
+    expect(gitBlocked(`echo "$(git -C ${main} commit -m x)"`, linked)).toBe(true);
+    expect(gitBlocked('echo `git commit -m x`', main)).toBe(true);
+    expect(gitBlocked(`echo "out: \`git -C ${main} commit -m x\`"`, linked)).toBe(true);
+    expect(gitBlocked(`echo $(cd ${main} && git commit -m x)`, linked)).toBe(true);
+    expect(gitBlocked(`echo $(cd ${main}) && git commit -m x`, linked)).toBe(false);
+    expect(gitBlocked("echo '$(git commit -m x)'", main)).toBe(false);
+    expect(gitBlocked('x=$(git rev-parse HEAD)', main)).toBe(false);
+  });
+
+  it('reads a heredoc body inside a substitution as data, brackets and backticks included', () => {
+    const body = "1) Fixed it\nDon't run `git reset --hard` (or `git commit`)\n";
+    expect(gitBlocked(`gh pr create --body "$(cat <<'EOF'\n${body}EOF\n)"`, main)).toBe(false);
+    expect(gitBlocked(`gh pr comment 1 --body "$(cat <<-EOF\n${body}\tEOF\n)" && git commit -m x`, main)).toBe(true);
+    expect(gitBlocked(`x=$(cat <<< "a)"; git commit -m x)`, main)).toBe(true);
+  });
+
+  it('follows GIT_DIR and GIT_WORK_TREE to the repo a command acts on', () => {
+    expect(gitBlocked(`GIT_DIR=${main}/.git git commit -m x`, linked)).toBe(true);
+    expect(gitBlocked(`GIT_DIR=${main}/.git GIT_WORK_TREE=${main} git merge feat/x`, linked)).toBe(true);
+    expect(gitBlocked(`env GIT_DIR=${main}/.git git commit -m x`, linked)).toBe(true);
+    expect(gitBlocked(`export GIT_DIR=${main}/.git; git commit -m x`, linked)).toBe(true);
+    expect(gitBlocked(`cd ${main} && GIT_DIR=.git git commit -m x`, linked)).toBe(true);
+    expect(gitBlocked(`GIT_DIR=${main}/.git/worktrees/wt GIT_WORK_TREE=${linked} git commit -m x`, main)).toBe(false);
+  });
+
+  it('blocks git branch moving, renaming onto, copying onto or deleting main', () => {
+    for (const branch of [
+      'git branch -f main feat/x',
+      'git branch --force main HEAD~1',
+      'git branch -M feat/x main',
+      'git branch -M main',
+      'git branch -C feat/x main',
+      'git branch -D main',
+      'git branch --delete refs/heads/main',
+    ]) {
+      expect(gitBlocked(branch, linked), branch).toBe(true);
+    }
+  });
+
+  it('allows git branch on other branches, and main as a start point', () => {
+    for (const branch of [
+      'git branch -f feat/y main',
+      'git branch feat/y main',
+      'git branch -M feat/x feat/y',
+      'git branch -D feat/y',
+      'git branch --contains main',
+      'git branch -u origin/main',
+      'git branch --list',
+    ]) {
+      expect(gitBlocked(branch, linked), branch).toBe(false);
+    }
+  });
+
+  it('blocks git update-ref on main, or on HEAD while the branch is main', () => {
+    expect(gitBlocked('git update-ref refs/heads/main feat/x', linked)).toBe(true);
+    expect(gitBlocked('git update-ref -m msg refs/heads/main feat/x', linked)).toBe(true);
+    expect(gitBlocked('git update-ref -d refs/heads/main', linked)).toBe(true);
+    expect(gitBlocked('git update-ref HEAD feat/x', main)).toBe(true);
+    expect(gitBlocked('git update-ref HEAD HEAD~1', linked)).toBe(false);
+    expect(gitBlocked('git update-ref refs/heads/feat/y main', linked)).toBe(false);
   });
 
   it('blocks a push to main from another branch', () => {
