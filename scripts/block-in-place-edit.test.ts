@@ -85,6 +85,12 @@ describe('in-place edits of source are blocked', () => {
     expect(blocksInPlaceEdit('perl -pi -e s/a/$(cat V)/ packages/x.ts', repo, repo)).toBe(true);
   });
 
+  it('sees an in-place edit run inside a substitution', () => {
+    expect(blocksInPlaceEdit('x=$(sed -i s/a/b/ apps/x.ts)', repo, repo)).toBe(true);
+    expect(blocksInPlaceEdit('echo "`sed -i s/a/b/ apps/x.ts`"', repo, repo)).toBe(true);
+    expect(blocksInPlaceEdit("echo '$(sed -i s/a/b/ apps/x.ts)'", repo, repo)).toBe(false);
+  });
+
   it('reads letters after -i as the backup suffix', () => {
     expect(blocksInPlaceEdit("sed -iref 's/a/b/' /tmp/x", `${repo}/apps/client`, repo)).toBe(false);
     expect(blocksInPlaceEdit("sed -iref 's/a/b/' apps/x.ts", repo, repo)).toBe(true);
