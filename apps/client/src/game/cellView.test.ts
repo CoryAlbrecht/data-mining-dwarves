@@ -49,7 +49,7 @@ function fixture(depth = 1): LevelDef {
   };
 }
 
-const ctx = (over: Partial<ViewContext> = {}): ViewContext => ({ dwarves: [], deviceLevels: {}, frame: 0, ...over });
+const ctx = (over: Partial<ViewContext> = {}): ViewContext => ({ dwarves: [], deviceLevels: {}, ...over });
 
 function dwarf(id: number, pos: number, target: number | null = null): Dwarf {
   return { id, level: 1, depth: 1, pos, target, path: [], goal: null };
@@ -117,12 +117,11 @@ describe('cellView: rocks, items and monsters', () => {
     });
   });
 
-  it('hands over the dwarf standing on a cell; the frame does not change the cell', () => {
+  it('hands over the dwarf standing on a cell', () => {
     const lvl = makeLevelState(fixture());
     const d = dwarf(1, 9);
     expect(cellView(lvl, 9, ctx({ dwarves: [d] })).dwarf).toBe(d);
     expect(cellView(lvl, 9, ctx({ dwarves: [{ ...d, depth: 2 }] })).dwarf).toBeUndefined();
-    expect(cellView(lvl, 1, ctx({ frame: 7 }))).toEqual(cellView(lvl, 1, ctx({ frame: 0 })));
   });
 });
 
@@ -154,13 +153,12 @@ describe('cellView: Devices', () => {
     expect(cellView(lvl, 3, ctx()).glyph).toBe('4004');
   });
 
-  it('pulses the full Collect button with its usual glyph, whatever the frame', () => {
+  it('pulses the full Collect button with its usual glyph', () => {
     const lvl = uncovered();
     lvl.buffers.value = [bufferCap(getDeviceModel('cpu:4004-cpu'), 1) - 1];
     expect(cellView(lvl, 6, ctx()).classes).not.toContain('cell-full');
     lvl.buffers.value = [bufferCap(getDeviceModel('cpu:4004-cpu'), 1)];
-    expect(cellView(lvl, 6, ctx({ frame: 0 }))).toMatchObject({ glyph: '⇩', classes: expect.arrayContaining(['cell-full']) });
-    expect(cellView(lvl, 6, ctx({ frame: 4 }))).toEqual(cellView(lvl, 6, ctx({ frame: 0 })));
+    expect(cellView(lvl, 6, ctx())).toMatchObject({ glyph: '⇩', classes: expect.arrayContaining(['cell-full']) });
   });
 
   it('marks an automated Device ⟳ and never as full', () => {

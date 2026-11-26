@@ -5,13 +5,11 @@ import { deviceLabels, portLabels } from './labels.ts';
 
 /**
  * The rest of the world a cell's look depends on, passed in so the cell-view functions stay pure.
- * `frame` is only for the grid's frame-driven animation (the dwarves' dance); no cell decision reads it.
  */
 export interface ViewContext {
   dwarves: readonly Dwarf[];
   /** Level of each Device model (models not listed are Level 1). */
   deviceLevels: Readonly<Record<string, number>>;
-  frame: number;
 }
 
 /**

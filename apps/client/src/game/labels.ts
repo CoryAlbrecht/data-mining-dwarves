@@ -1,5 +1,11 @@
 import { getDeviceModel, NETWORK_TECHS, portCapacity, portSpeed, type DeviceKind, type NetworkTechId, type PortState } from '@dmd/shared';
 
+/** Pads a list of cell labels with empty cells, or cuts it, to exactly `cells` entries. */
+function padTo(out: string[], cells: number): string[] {
+  while (out.length < cells) out.push('');
+  return out.slice(0, cells);
+}
+
 const KIND: Record<DeviceKind, string> = { cpu: 'CPU', dram: 'RAM', storage: 'DISK', vram: 'VID', forge: 'fork' };
 
 /** Words a model name doesn't need on its label cells, and short forms for the rest. */
@@ -17,7 +23,7 @@ const SHORTEN: [RegExp, string][] = [
  */
 export function deviceLabels(model: string, cells: number): string[] {
   const m = getDeviceModel(model);
-  if (m.kind === 'forge') return ['fork', '()', ...Array<string>(Math.max(0, cells - 2)).fill('')].slice(0, cells);
+  if (m.kind === 'forge') return padTo(['fork', '()'], cells);
   let name = m.name;
   for (const [re, to] of SHORTEN) name = name.replace(re, to);
   const words = name.trim().split(/\s+/);
@@ -28,8 +34,7 @@ export function deviceLabels(model: string, cells: number): string[] {
     if (out.length - 1 < room) out.push(word);
     else out[out.length - 1] = `${out.at(-1)}${word}`;
   }
-  while (out.length < cells) out.push('');
-  return out.slice(0, cells);
+  return padTo(out, cells);
 }
 
 /** Short Port technology names for the port's label cells, by technology id. */
@@ -52,7 +57,5 @@ export function portLabels(port: PortState, cells: number): string[] {
   const name = PORT_TECH_SHORT[tech.id];
   const use = `${port.passed}/${portCapacity(port.level)}`;
   const max = `≤L${tech.maxDwarfLevel}`;
-  const out = cells <= 2 ? [name, `${use} ${max}`] : cells === 3 ? [name, use, max] : [name, portSpeed(port), use, max];
-  while (out.length < cells) out.push('');
-  return out.slice(0, cells);
+  return padTo(cells <= 2 ? [name, `${use} ${max}`] : cells === 3 ? [name, use, max] : [name, portSpeed(port), use, max], cells);
 }

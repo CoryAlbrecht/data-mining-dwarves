@@ -18,7 +18,7 @@ export function MineGrid({ lvl }: { lvl: LevelState }) {
   const { def } = lvl;
   const { width, height, depth } = def;
   const g = def.theme.glyphs;
-  const ctx: ViewContext = { dwarves: dwarves.value, deviceLevels: deviceLevels.value, frame: frame.value };
+  const ctx: ViewContext = { dwarves: dwarves.value, deviceLevels: deviceLevels.value };
   const inPort = (x: number) => x >= def.exit.x && x < def.exit.x + def.exit.width;
 
   const cells: ReactNode[] = [];
@@ -87,7 +87,7 @@ function Cell({ lvl, i, ctx }: { lvl: LevelState; i: number; ctx: ViewContext })
       onClick={() => tapCell(depth, i)}
     >
       {v.dwarf ? (
-        <DwarfToken d={v.dwarf} frames={lvl.def.theme.glyphs.dwarf} f={ctx.frame} />
+        <DwarfToken d={v.dwarf} frames={lvl.def.theme.glyphs.dwarf} f={frame.value} />
       ) : (
         <>
           <span className="glyph">{v.glyph}</span>

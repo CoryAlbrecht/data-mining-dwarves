@@ -75,8 +75,9 @@ export interface LevelGlyphs {
   gapR: string;
   portBuried: string;
   portOpen: string;
-  /** Device spots: collect, its slow "I'm full" cycle, fork()'s spawn, upgrade. */
+  /** Device spots: collect, fork()'s spawn, upgrade. */
   collect: string;
+  /** Unused since #35 (the full Collect button pulses instead of cycling glyphs); #46 removes it. */
   collectFull: string[];
   spawn: string;
   upgrade: string;

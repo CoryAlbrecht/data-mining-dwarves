@@ -19,8 +19,8 @@ rules in words.
 5. **Chips work like cards.** Spending N chips of a model raises that device's **Level**. It's
    still a 4004, but it produces more bytes.
 6. **Automation** comes from a special drop: a **cron job** chip. Applying one to a device makes it
-   collect its own output: the Device still fills its buffer, and each time the buffer is full the
-   cron job empties it into your bytes, carrying any overflow into the emptied buffer.
+   collect its own output: the Device still fills its **Buffer**, and each time the Buffer is full the
+   cron job empties it into your bytes, carrying any overflow into the emptied Buffer.
 
 ## Mine layout
 
