@@ -58,7 +58,6 @@ const CRT_GLYPHS: LevelGlyphs = {
   portBuried: '▒',
   portOpen: ' ',
   collect: '⇩',
-  collectFull: ['⇩', '↓'],
   spawn: '+',
   upgrade: '⇧',
 };

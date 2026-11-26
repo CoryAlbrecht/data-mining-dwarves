@@ -77,8 +77,6 @@ export interface LevelGlyphs {
   portOpen: string;
   /** Device spots: collect, fork()'s spawn, upgrade. */
   collect: string;
-  /** Unused since #35 (the full Collect button pulses instead of cycling glyphs); #46 removes it. */
-  collectFull: string[];
   spawn: string;
   upgrade: string;
 }
