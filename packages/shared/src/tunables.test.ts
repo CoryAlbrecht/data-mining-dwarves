@@ -87,7 +87,7 @@ describe('the Mine cache name', () => {
 
 describe('tests run on the code defaults', () => {
   it('whatever the env files hold', () => {
-    expect(DIG_CURVE.rockGrowth).toBe(1.6);
+    expect(DIG_CURVE.rockGrowth).toBe(2.4);
     expect(LEVELS_CACHE).toBe(`dmd-levels-v${GENERATOR_VERSION}`);
   });
 });

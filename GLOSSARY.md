@@ -121,3 +121,9 @@ A special chip that lets dwarves travel back up through a Network port.
 
 **Sneakernet**:
 Carrying the data on a USB stick to the next Computer. The old Computer is left behind and the player starts over with one Level 1 dwarf.
+
+## Tuning
+
+**Pacing target**:
+A target time for one dwarf of a given Level to dig a bit-rock of a given Level. The constants in `DIG_CURVE` are fitted to a table of them; the targets are our own, not taken from any other game.
+_Avoid_: Benchmark

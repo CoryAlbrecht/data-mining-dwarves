@@ -72,7 +72,7 @@ describe('cellView: rocks, items and monsters', () => {
     const lvl = makeLevelState(fixture());
     const v = cellView(lvl, 1, ctx());
     expect(v).toMatchObject({ glyph: '▓', tiny: 1, classes: ['cell', 'cell-rock'] });
-    expect(v.title).toBe('Bit-rock, Level 1: 120 B left (30s for one L1 dwarf)');
+    expect(v.title).toBe('Bit-rock, Level 1: 120 B left (20s for one L1 dwarf)');
   });
 
   it('wears a bit-rock down through the Theme glyphs as it is dug', () => {
@@ -80,7 +80,7 @@ describe('cellView: rocks, items and monsters', () => {
     def.blocks[1] = rock({ level: 3, remaining: 50 });
     const v = cellView(makeLevelState(def), 1, ctx());
     expect(v).toMatchObject({ glyph: '▒', tiny: 3 });
-    expect(v.title).toBe('Bit-rock, Level 3: 50 B left (13s for one L1 dwarf)');
+    expect(v.title).toBe('Bit-rock, Level 3: 50 B left (9s for one L1 dwarf)');
   });
 
   it('lights a cell next to a hole', () => {

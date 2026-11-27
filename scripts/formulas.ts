@@ -16,6 +16,7 @@ import {
   deviceRate,
   DIG_CURVE,
   digSeconds,
+  PACING_TARGETS,
   dwarfPrice,
   ECONOMY,
   encryptedChipCount,
@@ -79,9 +80,27 @@ export function tables(): Table[] {
         ['`baseRockSize`', `${DIG_CURVE.baseRockSize} B`, 'Size of a Level 1 bit-rock'],
         ['`baseSeconds`', `${DIG_CURVE.baseSeconds} s`, 'Time for an L1 dwarf to dig a Level 1 rock alone'],
         ['`rockGrowth`', DIG_CURVE.rockGrowth, 'Size multiplier per rock Level'],
+        ['`rockBend`', DIG_CURVE.rockBend, 'Extra size multiplier per rock Level, compounding (1 = plain exponential)'],
         ['`dwarfGrowth`', DIG_CURVE.dwarfGrowth, 'Strike multiplier per dwarf Level'],
         ['`strikeSeconds`', `${DIG_CURVE.strikeSeconds} s`, 'Time between Strikes'],
       ],
+    ),
+  );
+  const duration = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = Math.round(s % 60);
+    return h ? `${h} h ${m} m` : m ? (sec ? `${m} m ${sec} s` : `${m} m`) : `${sec} s`;
+  };
+  add(
+    'pacing',
+    table(
+      ['Dwarf', 'Rock', 'Target', 'digSeconds', 'Off by'],
+      PACING_TARGETS.map(([d, r, target]) => {
+        const got = digSeconds(d, r);
+        const off = Math.round((got / target - 1) * 100);
+        return [`L${d}`, `L${r}`, duration(target), duration(got), `${off > 0 ? '+' : off < 0 ? '−' : ''}${Math.abs(off)}%`];
+      }),
     ),
   );
   add('rock-size', wide('r', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15], String, [['bytes', (r) => fmt(rockSize(r))]]));
@@ -142,9 +161,8 @@ export function tables(): Table[] {
     ),
   );
   const spreads: [string, number][] = [
-    ['1', 1],
-    ['1.5', 1.5],
-    ['2', 2],
+    [`${fmt3(rockMedian(1))} (C1 first)`, rockMedian(1)],
+    [`${fmt3(rockMedian(2))} (C1 second)`, rockMedian(2)],
     ...range(0, 2).map((c): [string, number] => [`${fmt3(rockMedian(lastDepth(c)))} (C${c + 1} last)`, rockMedian(lastDepth(c))]),
   ];
   add(
@@ -221,7 +239,8 @@ export function tables(): Table[] {
     ),
   );
   add('byte-loot', wide('Depth', [1, 2, 3, 4, 5, 8, 12, 16, 20, 28], String, [['Middle value', (d) => fmt(byteLoot(d, 0.5))]]));
-  const bands = range(0, 4).map((k) => [k * 3 + 1, k * 3 + 3] as const);
+  const { levelsPerChip } = LOOT;
+  const bands = range(0, 4).map((k) => [k * levelsPerChip + 1, (k + 1) * levelsPerChip] as const);
   add(
     'chip-stacks',
     wide('Rock Level', bands, ([a, b]) => `${a}–${b}`, [

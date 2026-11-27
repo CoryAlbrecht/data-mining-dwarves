@@ -103,10 +103,10 @@ describe('moving and mining', () => {
     expect(get(2)!.target).toBe(5); // right first
   });
 
-  it('breaks a 120 B rock in 30 s for one L1 dwarf and leaves the loot on the floor', () => {
+  it('breaks a 120 B rock in 20 s for one L1 dwarf and leaves the loot on the floor', () => {
     dwarves.value = [dwarf(1, 1, 4)];
     A.moveDwarf(1, 'right');
-    run(29);
+    run(19);
     expect(levelAt(1)!.blocks.value[5]!.kind).toBe('rock');
     run(1);
     expect(levelAt(1)!.blocks.value[5]).toMatchObject({ kind: 'item' });
@@ -117,7 +117,7 @@ describe('moving and mining', () => {
     dwarves.value = [dwarf(1, 2, 10), dwarf(2, 2, 11)]; // even Levels: D,S,A,W — force them up
     A.moveDwarf(1, 'up');
     A.moveDwarf(2, 'up');
-    run(10); // 2 dwarves × 6 B/s → 120 B in 10 s
+    run(5); // 2 dwarves × 12.6 B/s → 120 B in 5 s
     expect(levelAt(1)!.devices.value[0]).toEqual({ buried: false, remaining: 0 });
     A.moveDwarf(1, 'up');
     expect(get(1)!.pos).toBe(10); // solid
@@ -167,7 +167,7 @@ describe('network port in the top Wall', () => {
     dwarves.value = [dwarf(1, 1, 1), dwarf(2, 1, 2)];
     A.moveDwarf(1, 'up');
     expect(get(1)!.target).toBe(EXIT);
-    run(30); // 240 B, two L1 dwarves at 4 B/s
+    run(20); // 240 B, two L1 dwarves at 6 B/s
     expect(levelAt(1)!.exit.value.buried).toBe(false);
     A.moveDwarf(1, 'up');
     expect(get(1)).toMatchObject({ depth: 2, pos: 9 });
@@ -403,7 +403,7 @@ describe('holding a key walks the Selected dwarf', () => {
     expect(get(1)!.pos).toBe(4);
     tick(0.34); // up from 4 is rock 0: mine it instead of moving
     expect(get(1)).toMatchObject({ pos: 4, target: 0 });
-    run(40); // the rock breaks after 30 s and leaves its loot on the floor
+    run(30); // the rock breaks after 20 s and leaves its loot on the floor
     expect(levelAt(1)!.blocks.value[0]!.kind).toBe('item');
     expect(get(1)!.pos).toBe(4); // dwarves never step onto loot by themselves
   });

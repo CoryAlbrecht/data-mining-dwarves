@@ -94,9 +94,9 @@ export function hardwareFor(depth: number): DeviceModel[] {
 /** How the Rock curve's median climbs (GLOSSARY.md: Rock curve). */
 export const ROCK_CURVE = tunable('ROCK_CURVE', {
   /** Median Level of the very first Mine. */
-  firstMedian: 1,
+  firstMedian: 3,
   /** Levels the median rises with each Mine of a Computer. */
-  perMine: 0.5,
+  perMine: 0.25,
   /** A new Computer starts this far up the previous Computer's first-to-last range. */
   handover: 0.25,
 } as const);
