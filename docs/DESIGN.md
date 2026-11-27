@@ -40,20 +40,21 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
   older Mines.
 - **Holes:** the bottom row and the cells around fork() start empty. From row 2 up, 60% of cells
   start as holes, falling steadily to 12% in the top row. Holes are just empty cells.
-- **Bit-rock Levels** follow the **Rock curve**: a bell curve (binomial, about ±1 Level) around
+- **Bit-rock Levels** follow the **Rock curve**: a bell curve (binomial, 7 Levels wide, about ±1.2 Levels) around
   the Mine's median Level. Holes are carved first, and the curve shares Levels out among the rocks
   that remain.
 - **The median climbs a quarter Level every Mine**, smoothly: a fractional median blends the
   curves either side, so each Mine is a little harder than the last. After Sneakernet the next Computer
   starts **a quarter of the way up** the previous Computer's first-to-last range, since the player
-  is rebuilding from one dwarf. With 4, 8, 16… Mines per Computer the medians run 3.25 → 4, then
-  3.4 → 5.2, then 3.9 → 7.6. The very first Mine already spreads over rock Levels 1–6, so its
+  is rebuilding from one dwarf. With 4, 8, 16… Mines per Computer the medians run 3 → 3.75, then
+  3.2 → 4.9, then 3.6 → 7.4. The very first Mine already spreads over rock Levels 1–6, so its
   port and buried Devices take a long while for a lone L1 dwarf.
 - **Generator version:** Mines are cached forever on the player's device, under a name that
   includes the generator's version. Any change to what a depth generates bumps the version. The
   port's position has its own random stream, so retuning never moves it under a saved Mine.
 - **Placement:** rocks are sorted easiest at the bottom to hardest at the top, then each one has a
-  50% chance to swap with a rock up to 2 rows away, so the layers aren't perfectly stratified.
+  50% chance to swap with a rock in the same row or the next one up or down, so the layers aren't
+  perfectly stratified.
 - **Loot odds** for ordinary bit-rocks: 55% bytes, 24% chips for this Mine's producing Devices,
   3% fork(), 6% chips for this Mine's Port technologies, 9% chips for models elsewhere, 1.5% duplex, 1.5% cron.
 - **Chip stacks:** a model chip comes as a stack that grows with the rock's Level, sometimes with

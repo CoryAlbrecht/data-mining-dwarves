@@ -265,12 +265,12 @@ and `rockLevelCounts` in [`layout.ts`](../packages/shared/src/layout.ts).
 <!-- rock-curve -->
 | Constant | Value | Meaning |
 | --- | --- | --- |
-| `firstMedian` | 3.25 | Median of the very first Mine |
+| `firstMedian` | 3 | Median of the very first Mine |
 | `perMine` | 0.25 | Rise per Mine within a Computer |
 | `handover` | 0.25 | A new Computer starts this far up the last one's first-to-last rise |
 
 ```
-start(0)    = 3.25
+start(0)    = 3
 start(c+1)  = start(c) + (computerLength(c) − 1) · 0.25 · 0.25
 rockMedian  = start(c) + index · 0.25
 ```
@@ -281,17 +281,17 @@ Computer's rise.
 <!-- medians -->
 | Computer | First Mine median | Last Mine median |
 | --- | --- | --- |
-| C1 (depths 1–4) | 3.25 | 4 |
-| C2 (depths 5–12) | 3.438 | 5.188 |
-| C3 (depths 13–28) | 3.875 | 7.625 |
-| C4 (depths 29–60) | 4.813 | 12.563 |
+| C1 (depths 1–4) | 3 | 3.75 |
+| C2 (depths 5–12) | 3.188 | 4.938 |
+| C3 (depths 13–28) | 3.625 | 7.375 |
+| C4 (depths 29–60) | 4.563 | 12.313 |
 
 ### Level spread
 
-Rock Levels follow a binomial bell curve (σ = 1) over median−2 … median+2:
+Rock Levels follow a binomial bell curve (σ ≈ 1.22) over median−3 … median+3:
 
 ```
-BELL = [1, 4, 6, 4, 1] / 16        for Levels m−2, m−1, m, m+1, m+2
+BELL = [1, 6, 15, 20, 15, 6, 1] / 64        for Levels m−3 … m+3
 ```
 
 A fractional median blends two bells:
@@ -301,7 +301,8 @@ low   = floor(median),  share = median − low
 w(L)  = (1 − share) · BELL centred on low  +  share · BELL centred on low+1
 ```
 
-- Levels below 1 fold into Level 1.
+- Levels below 1 fold into Level 1. At the first median (3) the bell reaches down to Level 0,
+  so Level 1 gets 7 of every 64 rocks.
 - For `n` rocks, each Level gets `floor(w(L) · n)` rocks, and the leftover rocks go to the
   Levels with the largest remainders, so the counts add up to exactly `n`.
 - The curve shares Levels among whatever cells are still rocks after holes, Devices and
@@ -312,18 +313,18 @@ Example spreads for a Mine of 60 rocks (Level: count):
 <!-- spreads -->
 | Median | Spread |
 | --- | --- |
-| 3.25 (C1 first) | 1: 3, 2: 12, 3: 21, 4: 17, 5: 6, 6: 1 |
-| 3.5 (C1 second) | 1: 2, 2: 9, 3: 19, 4: 19, 5: 9, 6: 2 |
-| 4 (C1 last) | 2: 4, 3: 15, 4: 22, 5: 15, 6: 4 |
-| 5.188 (C2 last) | 3: 3, 4: 13, 5: 21, 6: 16, 7: 6, 8: 1 |
-| 7.625 (C3 last) | 5: 1, 6: 8, 7: 18, 8: 20, 9: 11, 10: 2 |
+| 3 (C1 first) | 1: 6, 2: 14, 3: 19, 4: 14, 5: 6, 6: 1 |
+| 3.25 (C1 second) | 1: 5, 2: 12, 3: 18, 4: 15, 5: 8, 6: 2 |
+| 3.75 (C1 last) | 1: 2, 2: 8, 3: 15, 4: 18, 5: 12, 6: 4, 7: 1 |
+| 4.938 (C2 last) | 2: 1, 3: 6, 4: 14, 5: 19, 6: 14, 7: 5, 8: 1 |
+| 7.375 (C3 last) | 5: 4, 6: 11, 7: 17, 8: 16, 9: 9, 10: 3 |
 
 ### Placement
 
 1. Rock cells are listed bottom row first, and each row is shuffled.
 2. The sorted Levels are handed out easiest first, so easy rocks end up low and hard rocks high.
 3. **Jitter:** each rock has a `jitterChance = 0.5` chance to swap Levels with a random rock up
-   to `jitterRows = 2` rows away, in any column.
+   to `jitterRows = 1` row away, in any column.
 
 ### Hardness of Devices and ports
 
@@ -357,7 +358,7 @@ portSeed  = seed XOR 0x9E3779B9
 ```
 
 The port has its own stream, so retuning the generator never moves it. Any change to what a depth
-generates must bump `GENERATOR_VERSION` (now 5), because the service worker caches Mines forever.
+generates must bump `GENERATOR_VERSION` (now 7), because the service worker caches Mines forever.
 A fingerprint test (`apps/server/src/data/levels.test.ts`) over depths 1–200 fails until it does.
 
 ### fork(), Entry and Devices
@@ -646,10 +647,10 @@ decisions. Change the tuning in `packages/shared`, then update this page.
    climbs a quarter Level per Mine, so rock size at the median grows about ×1.33 per Mine early
    on (median 3–4) and ×1.43 by median 7, catching up as the bend steepens. Byte loot also
    follows global depth, but the Rock curve drops back at each Sneakernet. So C2's first Mine
-   (median 3.4375) pays about 41 B a rock, against 8 B on depth 1 (median 3.25), for rocks of
+   (median 3.1875) pays about 41 B a rock, against 8 B on depth 1 (median 3), for rocks of
    much the same size.
-2. **Early byte loot is small next to Devices.** On depth 1 a bytes rock pays about 8 B for 2 to 7
-   minutes of digging (an L3 or L4 rock for one L1 dwarf). The 4004 makes 1 B/s on its own, and the first extra dwarf costs 50 B. Early
+2. **Early byte loot is small next to Devices.** On depth 1 a bytes rock pays about 8 B for under a
+   minute to 7 minutes of digging (an L2 to L4 rock for one L1 dwarf). The 4004 makes 1 B/s on its own, and the first extra dwarf costs 50 B. Early
    income is mostly Devices.
 3. **Merging gains a little digging power.** Two L1 dwarves strike 12 B/s together, while the L2
    they merge into strikes 12.6 B/s (×1.05 per merge). Merging is never a loss, and it also pays

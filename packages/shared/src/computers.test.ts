@@ -31,19 +31,19 @@ describe('computers', () => {
   });
 
   it('raises the Rock curve median a quarter Level every Mine', () => {
-    expect([1, 2, 3, 4].map(rockMedian)).toEqual([3.25, 3.5, 3.75, 4]);
+    expect([1, 2, 3, 4].map(rockMedian)).toEqual([3, 3.25, 3.5, 3.75]);
   });
 
   it('starts each new Computer a quarter of the way up the last one', () => {
-    // Computer 1 runs 3.25 → 4, so Computer 2 starts at 3.4375 and runs 8 Mines to 5.1875.
-    expect(rockMedian(5)).toBeCloseTo(3.4375);
-    expect(rockMedian(12)).toBeCloseTo(5.1875);
-    // Computer 3: 3.4375 + (5.1875 − 3.4375) / 4 = 3.875, then 16 Mines to 7.625.
-    expect(rockMedian(13)).toBeCloseTo(3.875);
-    expect(rockMedian(28)).toBeCloseTo(7.625);
-    // Computer 4: 3.875 + (7.625 − 3.875) / 4 = 4.8125, then 32 Mines to 12.5625.
-    expect(rockMedian(29)).toBeCloseTo(4.8125);
-    expect(rockMedian(60)).toBeCloseTo(12.5625);
+    // Computer 1 runs 3 → 3.75, so Computer 2 starts at 3.1875 and runs 8 Mines to 4.9375.
+    expect(rockMedian(5)).toBeCloseTo(3.1875);
+    expect(rockMedian(12)).toBeCloseTo(4.9375);
+    // Computer 3: 3.1875 + (4.9375 − 3.1875) / 4 = 3.625, then 16 Mines to 7.375.
+    expect(rockMedian(13)).toBeCloseTo(3.625);
+    expect(rockMedian(28)).toBeCloseTo(7.375);
+    // Computer 4: 3.625 + (7.375 − 3.625) / 4 = 4.5625, then 32 Mines to 12.3125.
+    expect(rockMedian(29)).toBeCloseTo(4.5625);
+    expect(rockMedian(60)).toBeCloseTo(12.3125);
   });
 });
 
@@ -52,18 +52,20 @@ import { rockLevelCounts, holeChance, portWidth } from './layout.ts';
 describe('layout rules', () => {
   it('spreads rock Levels in a bell curve that adds up', () => {
     const counts = rockLevelCounts(32, 4);
-    expect(counts.map(([l]) => l)).toEqual([2, 3, 4, 5, 6]);
+    expect(counts.map(([l]) => l)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(counts.reduce((a, [, c]) => a + c, 0)).toBe(32);
     const peak = counts.find(([l]) => l === 4)![1];
     expect(peak).toBeGreaterThan(counts.find(([l]) => l === 2)![1]);
   });
 
   it('shifts the bell curve by half-steps for a half-Level median', () => {
+    // Enough rocks that rounding the bell's thin ends doesn't pull the mean off.
+    const n = 640;
     const mean = (median: number) => {
-      const counts = rockLevelCounts(64, median);
-      expect(counts.reduce((a, [, c]) => a + c, 0)).toBe(64);
+      const counts = rockLevelCounts(n, median);
+      expect(counts.reduce((a, [, c]) => a + c, 0)).toBe(n);
       expect(counts.every(([l]) => Number.isInteger(l))).toBe(true);
-      return counts.reduce((a, [l, c]) => a + l * c, 0) / 64;
+      return counts.reduce((a, [l, c]) => a + l * c, 0) / n;
     };
     expect(mean(4.5)).toBeGreaterThan(mean(4));
     expect(mean(4.5)).toBeLessThan(mean(5));
