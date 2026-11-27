@@ -12,3 +12,7 @@ coverage/
 .serve-private/
 .claude/worktrees/
 /attachments/
+# Tunable overrides: the shared env files are committed, personal ones are not.
+!config/.env
+!config/.env.development
+config/*.local.env
