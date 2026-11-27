@@ -49,7 +49,7 @@ const PORT_TECH_SHORT: Record<PortTechId, string> = {
 
 /**
  * One label cell of a dug-out port: its lines of text, top to bottom, and whether it's drawn big.
- * Capacity and max Level cells are big; the technology name and speed are not.
+ * Port capacity and max Level cells are big; the technology name and speed are not.
  */
 export interface PortLabel {
   lines: string[];
@@ -58,15 +58,15 @@ export interface PortLabel {
 
 /** A port label cell drawn small: the technology name, speed or `USB`. */
 export const smallLabel = (...lines: string[]): PortLabel => ({ lines, big: false });
-/** A port label cell drawn big: Capacity and max Level. */
+/** A port label cell drawn big: Port capacity and max Level. */
 export const bigLabel = (...lines: string[]): PortLabel => ({ lines, big: true });
 /** A port cell with no label text. */
 export const noLabel = (): PortLabel => smallLabel();
 
 /**
  * A dug-out Network port's label cells, left to right, by port width:
- * 2 → [tech, "in use/Capacity" over "≤Lmax"]; 3 → [tech, "in use/Capacity", "≤Lmax"];
- * 4 → [tech, speed, "in use/Capacity", "≤Lmax"]. Capacity and max Level are big.
+ * 2 → [tech, "in use/Port capacity" over "≤Lmax"]; 3 → [tech, "in use/Port capacity", "≤Lmax"];
+ * 4 → [tech, speed, "in use/Port capacity", "≤Lmax"]. Port capacity and max Level are big.
  */
 export function portLabels(port: PortState, cells: number): PortLabel[] {
   const tech = portTech(port.tech);

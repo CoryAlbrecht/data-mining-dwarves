@@ -216,13 +216,13 @@ Each Level up costs about 1.5× the chips of the one before: 2, 3, 5, 7, 11, …
 - **Port labels:** a buried port shows rock with no labels. Once dug out, its cells show small
   label text (like a Device's label cells) instead of the open-port glyph. Tapping it and walking
   dwarves up into it work as before. By the port's width:
-  - 2 cells: `[tech] [in use/Capacity over ≤L<max>]`: Capacity and max Level are stacked on two
-    lines in the second cell, Capacity on top.
-  - 3 cells: `[tech] [in use/Capacity] [≤L<max>]`
-  - 4 cells: `[tech] [speed] [in use/Capacity] [≤L<max>]`
+  - 2 cells: `[tech] [in use/Port capacity over ≤L<max>]`: Port capacity and max Level are
+    stacked on two lines in the second cell, Port capacity on top.
+  - 3 cells: `[tech] [in use/Port capacity] [≤L<max>]`
+  - 4 cells: `[tech] [speed] [in use/Port capacity] [≤L<max>]`
 
-  The Capacity and max Level labels are drawn about 40% bigger than the technology name and
-  speed, shrinking only as far as they need to fit in their cell.
+  The Port capacity and max Level labels are drawn about 40% bigger than the technology name
+  and speed, shrinking only as far as they need to fit in their cell.
 
   *In use* is the dwarves through the port now, *max* is the highest dwarf Level the Port
   technology passes, and *speed* is the port's speed (e.g. `9600 baud`). The technology is shown

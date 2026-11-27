@@ -6,7 +6,7 @@ import { deviceRate, getDeviceModel, type Block, type LevelDef } from '@dmd/shar
  *
  *   ╔═╡▒▒╞═╗   port over columns 1–2 (hardness 240 B)
  *   ║ 0 1 2 3║  R R R R      R = 120 B rock (Level 1)
- *   ║ 4 5 6 7║  . R C C      C = buried 4004 CPU, 2×1 (120 B); 6 = collect spot, 7 = label
+ *   ║ 4 5 6 7║  . R C C      C = buried 4004 CPU, 2×1 (120 B); 6 = Collect button, 7 = label
  *   ║ 8 9 A B║  . . . .
  *   ╚══╡ ╞══╝  Entry under column 1 → dwarves arrive on cell 9
  *
@@ -457,7 +457,7 @@ describe('Device and port dialogs', () => {
     expect(message.value).toMatch(/Buried hardware/);
   });
 
-  it('still collects in one tap from the collect spot, without a dialog', () => {
+  it('still collects in one tap from the Collect button, without a dialog', () => {
     uncover(1);
     levelAt(1)!.buffers.value = [42];
     A.tapCell(1, 6);

@@ -519,7 +519,7 @@ A dwarf that comes back up through the Entry (with duplex) frees its place.
 <!-- port-capacity -->
 | Port Level | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Capacity | 1 | 2 | 2 | 3 | 3 | 4 | 5 | 6 |
+| Port capacity | 1 | 2 | 2 | 3 | 3 | 4 | 5 | 6 |
 
 ### Technology
 

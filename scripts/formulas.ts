@@ -290,7 +290,7 @@ export function tables(): Table[] {
   );
 
   // ── 8. Network ──
-  add('port-capacity', wide('Port Level', [1, 2, 3, 4, 5, 6, 8, 10], String, [['Capacity', portCapacity]]));
+  add('port-capacity', wide('Port Level', [1, 2, 3, 4, 5, 6, 8, 10], String, [['Port capacity', portCapacity]]));
   add(
     'port-techs',
     table(
