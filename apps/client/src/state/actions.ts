@@ -95,6 +95,16 @@ function getDwarf(id: number): Dwarf | undefined {
   return dwarves.value.find((d) => d.id === id);
 }
 
+/** Collect the Item lying in cell `i`, if there is one: credit its loot and clear the cell. */
+function pickUpItem(lvl: LevelState, i: number) {
+  const b = lvl.blocks.value[i];
+  if (b?.kind !== 'item') return;
+  batch(() => {
+    grantLoot(b.loot);
+    setBlock(lvl, i, { kind: 'empty' });
+  });
+}
+
 function grantLoot(loot: Loot) {
   if (loot.kind === 'bytes') {
     earn(loot.amount);
@@ -257,10 +267,7 @@ function stepInto(id: number, n: number, fromPath: boolean): boolean {
 
   batch(() => {
     updateDwarf(id, { pos: n, target: null, ...(fromPath ? { path: d.path.slice(1) } : STOP) });
-    if (b?.kind === 'item') {
-      grantLoot(b.loot);
-      setBlock(lvl, n, { kind: 'empty' });
-    }
+    pickUpItem(lvl, n);
   });
   return true;
 }
@@ -481,7 +488,7 @@ function travelUp(id: number): boolean {
 }
 
 // ── Tapping ───────────────────────────────────────────────────────────────────
-/** Tap a cell: fight a monster, or use a Device spot (collect / upgrade / details). */
+/** Tap a cell: pick up an Item, fight a monster, or use a Device spot (collect / upgrade / details). */
 export function tapCell(depth: number, i: number) {
   const lvl = levelAt(depth);
   const b = lvl?.blocks.value[i];
@@ -507,8 +514,8 @@ export function tapCell(depth: number, i: number) {
     else dialogSubject.value = { kind: 'device', depth, device: b.device };
     return;
   }
+  if (b.kind === 'item') pickUpItem(lvl, i);
   if (b.kind === 'rock') say('Move a dwarf next to it (or drag one onto it) to mine it.');
-  if (b.kind === 'item') say('Walk a dwarf onto it to pick it up.');
 }
 
 /** Tap the Network or USB port's stretch of Wall: open its dialog. */

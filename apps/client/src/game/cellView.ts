@@ -31,6 +31,8 @@ export interface CellView {
   corner?: string;
   /** How much of this cell a producing Device's Buffer level covers, bottom up: 0..1. */
   fill?: number;
+  /** An Item lies here: the grid draws a button that picks it up (tap, click, Enter or Space). */
+  item?: true;
   /** Dig bar: the fraction (remaining / size) left of what's being dug; set only while a dwarf digs it. */
   digBar?: number;
 }
@@ -60,7 +62,8 @@ export function cellView(lvl: LevelState, i: number, ctx: ViewContext): CellView
       break;
     case 'item':
       v.glyph = g.item;
-      v.title = b.loot.kind === 'bytes' ? `${formatBytes(b.loot.amount)}: walk onto it to pick it up` : 'A chip: walk onto it to pick it up';
+      v.title = `${b.loot.kind === 'bytes' ? formatBytes(b.loot.amount) : 'A chip'}: tap it or walk a dwarf onto it to pick it up`;
+      v.item = true;
       break;
     case 'rock':
       v.glyph = worn(b.encrypted ? g.encrypted : g.rock, b.remaining, b.size);

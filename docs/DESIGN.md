@@ -155,8 +155,10 @@ rock keeps its remaining size if the dwarves leave. The constants are in `DIG_CU
   on a rock walks it next to the rock and starts mining.
 - When a rock breaks, the dwarf **starts on the next adjacent rock by itself**. Odd-Level dwarves
   check **W, A, S, D** (up, left, down, right) and even-Level dwarves check **D, S, A, W**.
-- A broken rock **leaves its loot (bytes or a stack of chips) on the floor**. Dwarves never pick things up on
-  their own; the player has to move a dwarf onto the item.
+- A broken rock **leaves its loot (bytes or a stack of chips) on the floor** as an Item. Dwarves
+  never pick things up on their own. The player picks an Item up by **tapping or clicking it**
+  (or Tabbing to it and pressing Enter or Space), or by moving a dwarf onto it. A tap needs no
+  dwarf nearby, and it leaves the selected dwarf where it is.
 - Moving a dwarf **onto a same-Level dwarf merges them** into one dwarf of the next Level. A
   different-Level dwarf blocks the way.
 - Monsters block cells. The player taps them to fight; dwarves don't fight.

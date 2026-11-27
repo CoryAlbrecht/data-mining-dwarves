@@ -125,6 +125,12 @@ button { font: inherit; color: inherit; }
 .cell { cursor: pointer; color: var(--ink-dim); }
 .cell-lit { color: var(--ink); }
 .cell-item .glyph { color: var(--gold); }
+/* An Item is a button (Tab, Enter, Space) filling its cell; it shows a ring when focused. */
+.item {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 0; border: 0; background: none; font-size: inherit; cursor: pointer;
+}
+.item:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 /* A producing Device fills like a tank: --fill is this cell's share (0..1), eased between ticks. */
 @property --fill { syntax: '<number>'; inherits: false; initial-value: 0; }
 .cell-hardware {

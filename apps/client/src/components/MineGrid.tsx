@@ -99,6 +99,11 @@ function Cell({ lvl, i, ctx }: { lvl: LevelState; i: number; ctx: ViewContext })
     >
       {v.dwarf ? (
         <DwarfToken d={v.dwarf} frames={lvl.def.theme.glyphs.dwarf} f={frame.value} />
+      ) : v.item ? (
+        // A real button so Tab reaches it and Enter/Space press it; the click bubbles to the cell.
+        <button type="button" className="item" aria-label={v.title}>
+          <span className="glyph">{v.glyph}</span>
+        </button>
       ) : (
         <>
           <span className="glyph">{v.glyph}</span>

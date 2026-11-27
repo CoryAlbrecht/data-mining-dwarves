@@ -50,7 +50,7 @@ One blow of a dwarf's pick, once a second. Each strike knocks some bytes off the
 _Avoid_: Hit, tick
 
 **Item**:
-Loot (bytes, or one or more of a chip) left lying in a cell after its bit-rock breaks, waiting for a dwarf to step on it.
+Loot (bytes, or one or more of a chip) left lying in a cell after its bit-rock breaks, until the player taps it or walks a dwarf onto it.
 _Avoid_: Drop, pickup
 
 **Entry**:

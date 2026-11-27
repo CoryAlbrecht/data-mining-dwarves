@@ -123,7 +123,23 @@ describe('moving and mining', () => {
     expect(get(1)!.pos).toBe(10); // solid
   });
 
-  it('picks up an item only when a dwarf steps onto it', () => {
+  it('picks up an item when tapped, wherever the dwarves are, and leaves the selection alone', () => {
+    A.setBlock(levelAt(1)!, 4, { kind: 'item', loot: { kind: 'bytes', amount: 50 } });
+    A.setBlock(levelAt(1)!, 11, { kind: 'item', loot: { kind: 'chip', chip: 'cron', count: 2 } });
+    dwarves.value = [dwarf(1, 1, 9)];
+    W.selectedDwarf.value = 1;
+    A.tapCell(1, 4);
+    expect(W.bytes.value).toBe(50);
+    expect(levelAt(1)!.blocks.value[4]!.kind).toBe('empty');
+    expect(message.value).toMatch(/Picked up 50 B/);
+    A.tapCell(1, 11);
+    expect(inventory.value.cron).toBe(2);
+    expect(levelAt(1)!.blocks.value[11]!.kind).toBe('empty');
+    expect(W.selectedDwarf.value).toBe(1);
+    expect(get(1)).toMatchObject({ pos: 9, target: null, path: [], goal: null });
+  });
+
+  it('picks up an item when a dwarf steps onto it', () => {
     A.setBlock(levelAt(1)!, 4, { kind: 'item', loot: { kind: 'chip', chip: 'cron', count: 1 } });
     dwarves.value = [dwarf(1, 1, 8)];
     A.moveDwarf(1, 'up');

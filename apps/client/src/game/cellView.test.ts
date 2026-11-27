@@ -105,9 +105,9 @@ describe('cellView: rocks, items and monsters', () => {
     def.blocks[8] = { kind: 'item', loot: { kind: 'chip', chip: 'cron', count: 1 } };
     const lvl = makeLevelState(def);
     expect(cellView(lvl, 4, ctx())).toEqual({
-      glyph: '¤', tiny: null, title: '1.5 kB: walk onto it to pick it up', classes: ['cell', 'cell-item', 'cell-lit'],
+      glyph: '¤', tiny: null, title: '1.5 kB: tap it or walk a dwarf onto it to pick it up', classes: ['cell', 'cell-item', 'cell-lit'], item: true,
     });
-    expect(cellView(lvl, 8, ctx()).title).toBe('A chip: walk onto it to pick it up');
+    expect(cellView(lvl, 8, ctx()).title).toBe('A chip: tap it or walk a dwarf onto it to pick it up');
   });
 
   it('draws a monster with its HP', () => {

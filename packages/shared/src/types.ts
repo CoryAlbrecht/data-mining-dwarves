@@ -24,7 +24,7 @@ export type DeviceRole = 'collect' | 'upgrade' | 'label';
 export type Block =
   /** A hole: empty, walkable. Mined-out cells become holes too. */
   | { kind: 'empty' }
-  /** Loot left by a broken bit-rock. A dwarf has to step on it to pick it up. */
+  /** Loot left by a broken bit-rock. Picked up by tapping it or walking a dwarf onto it. */
   | { kind: 'item'; loot: Loot }
   | { kind: 'rock'; level: number; size: number; remaining: number; loot: Loot; encrypted?: boolean }
   | { kind: 'monster'; monster: MonsterId; hp: number }
