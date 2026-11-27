@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bufferCap, getDeviceModel, NETWORK_TECHS, type Block, type LevelDef } from '@dmd/shared';
+import { bufferCap, getDeviceModel, PORT_TECHS, type Block, type LevelDef } from '@dmd/shared';
 import { dig, produceFor } from '../state/actions.ts';
 import { deviceLevels, EXIT, levels, makeLevelState, type Dwarf, type LevelState } from '../state/world.ts';
 import { cellView, portView, type ViewContext } from './cellView.ts';
@@ -286,7 +286,7 @@ describe('portView', () => {
 
   it('gives every Port technology its short name and highest dwarf Level', () => {
     const lvl = openPort(3);
-    const seen = NETWORK_TECHS.map(({ id }) => {
+    const seen = PORT_TECHS.map(({ id }) => {
       lvl.port.value = { ...lvl.port.value, tech: id };
       const [name, , max] = labels(lvl);
       return `${name} ${max}`;

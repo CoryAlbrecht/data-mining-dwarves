@@ -11,7 +11,7 @@ export interface MonsterDef {
   bounty: number;
 }
 
-/** What breaking a bit-rock gives you. `chip` is any chip id (device model, network tech, special). */
+/** What breaking a bit-rock gives you. `chip` is any chip id (device model, Port technology, special). */
 export type Loot = { kind: 'bytes'; amount: number } | { kind: 'chip'; chip: string; count: number };
 
 /** What a cell of a Device does when tapped. */

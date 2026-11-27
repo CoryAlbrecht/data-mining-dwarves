@@ -1,5 +1,5 @@
 /**
- * What a bit-rock holds when it breaks. A model chip (a Device, fork() or Network technology)
+ * What a bit-rock holds when it breaks. A model chip (a Device, fork() or Port technology)
  * comes as a small stack that grows with the rock's Level; duplex and cron chips come singly.
  */
 export const LOOT = {
@@ -13,12 +13,12 @@ export const LOOT = {
   encryptedStacks: 3,
   /**
    * How often each chip appears in an encrypted bit-rock's draw: every producing Device's chip
-   * this many times, fork() and each network chip once each.
+   * this many times, fork() and each Port technology chip once each.
    */
-  encryptedWeights: { device: 2, fork: 1, network: 1 },
+  encryptedWeights: { device: 2, fork: 1, portTech: 1 },
   /** "Other" chips go at most this many ladder tiers above this Mine's model of the same kind. */
   otherTierWindow: 4,
-  /** The next Network technology's chips drop from this depth on. */
+  /** The next Port technology's chips drop from this depth on. */
   nextTechFromDepth: 2,
   /**
    * Share of ordinary bit-rocks holding each kind of loot (adds up to 1). Chips for this Mine's
@@ -29,8 +29,8 @@ export const LOOT = {
     /** Chips for this Mine's producing Devices (CPU, DRAM, storage, VRAM), picked evenly. */
     device: 0.24,
     fork: 0.03,
-    /** Chips for this Mine's Network technologies, picked evenly. */
-    network: 0.06,
+    /** Chips for this Mine's Port technologies, picked evenly. */
+    portTech: 0.06,
     /** Chips for models that aren't in this Mine. */
     other: 0.09,
     duplex: 0.015,
@@ -64,10 +64,10 @@ export function chipCount(level: number, roll: number): number {
  * The chips an encrypted bit-rock draws from, weighted by repetition (LOOT.encryptedWeights).
  * Order matters: the generator picks from it with its seeded stream.
  */
-export function encryptedChipPool(deviceChips: readonly string[], forkChip: string, networkChips: readonly string[]): string[] {
+export function encryptedChipPool(deviceChips: readonly string[], forkChip: string, portTechChips: readonly string[]): string[] {
   const w = LOOT.encryptedWeights;
   const repeat = (xs: readonly string[], n: number) => Array.from({ length: n }, () => xs).flat();
-  return [...repeat(deviceChips, w.device), ...repeat([forkChip], w.fork), ...repeat(networkChips, w.network)];
+  return [...repeat(deviceChips, w.device), ...repeat([forkChip], w.fork), ...repeat(portTechChips, w.portTech)];
 }
 
 /** Chips in an encrypted bit-rock of `level`. */

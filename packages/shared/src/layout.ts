@@ -1,5 +1,5 @@
 import { rockSize } from './digging.ts';
-import { networkTechAt, type NetworkTechId } from './network.ts';
+import { portTechAt, type PortTechId } from './network.ts';
 
 /**
  * Version of the Mine generator. Bump it whenever generation changes what a depth produces:
@@ -70,8 +70,8 @@ export function portWidth(computer: number): number {
 }
 
 /** Technology a new Mine's port starts at: one further along per Computer. */
-export function startTech(computer: number): NetworkTechId {
-  return networkTechAt(computer);
+export function startTech(computer: number): PortTechId {
+  return portTechAt(computer);
 }
 
 /** Device footprint grows by Computer: 2×2, then 2×3, then 3×3. */

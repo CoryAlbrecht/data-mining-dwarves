@@ -1,4 +1,4 @@
-import { getDeviceModel, networkTech, portCapacity, portSpeed, type DeviceKind, type NetworkTechId, type PortState } from '@dmd/shared';
+import { getDeviceModel, portCapacity, portSpeed, portTech, type DeviceKind, type PortState, type PortTechId } from '@dmd/shared';
 
 /** Pads a list of cell labels with `empty` cells, or cuts it, to exactly `cells` entries. */
 function padTo<T>(out: T[], cells: number, empty: () => T): T[] {
@@ -38,7 +38,7 @@ export function deviceLabels(model: string, cells: number): string[] {
 }
 
 /** Short Port technology names for the port's label cells, by technology id. */
-const PORT_TECH_SHORT: Record<NetworkTechId, string> = {
+const PORT_TECH_SHORT: Record<PortTechId, string> = {
   'net:serial': 'RS-232',
   'net:ethernet-1m': '1Mb ETH',
   'net:token-ring-2m': 'TOKEN',
@@ -69,7 +69,7 @@ export const noLabel = (): PortLabel => smallLabel();
  * 4 → [tech, speed, "in use/Capacity", "≤Lmax"]. Capacity and max Level are big.
  */
 export function portLabels(port: PortState, cells: number): PortLabel[] {
-  const tech = networkTech(port.tech);
+  const tech = portTech(port.tech);
   const name = smallLabel(PORT_TECH_SHORT[tech.id]);
   const use = `${port.passed}/${portCapacity(port.level)}`;
   const max = `≤L${tech.maxDwarfLevel}`;

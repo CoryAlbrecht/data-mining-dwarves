@@ -23,7 +23,7 @@ import {
   MONSTER_SPAWN,
   MONSTERS,
   mulberry32,
-  nextNetworkTech,
+  nextPortTech,
   placeOf,
   portSeed,
   portSize,
@@ -227,13 +227,13 @@ export function generateLevel(depth: number): LevelDef {
   const hardest = distinct[0] ?? Math.round(median);
   const second = distinct[1] ?? hardest;
 
-  // Chips worth finding here: this Mine's producing Devices (most often), fork(), and network chips.
+  // Chips worth finding here: this Mine's producing Devices (most often), fork(), and Port technology chips.
   const deviceIds = hardware.map((d) => d.id);
   const tech = startTech(place.computer);
-  const nextTech = nextNetworkTech(tech);
-  const netChips = [tech, ...(nextTech && depth >= LOOT.nextTechFromDepth ? [nextTech.id] : [])];
-  // Encrypted bit-rocks: producing Devices twice as likely as fork() or a network chip.
-  const encryptedChips = encryptedChipPool(deviceIds, FORGE_ID, netChips);
+  const nextTech = nextPortTech(tech);
+  const portTechChips = [tech, ...(nextTech && depth >= LOOT.nextTechFromDepth ? [nextTech.id] : [])];
+  // Encrypted bit-rocks: producing Devices twice as likely as fork() or a Port technology chip.
+  const encryptedChips = encryptedChipPool(deviceIds, FORGE_ID, portTechChips);
   const here = new Set(deviceIds);
   const otherChips = DEVICE_MODELS.filter((m) => {
     const local = hardware.find((d) => d.kind === m.kind);
@@ -245,7 +245,7 @@ export function generateLevel(depth: number): LevelDef {
     const kind = lootKind(rand());
     if (kind === 'device') return modelChips(pick(deviceIds), level);
     if (kind === 'fork') return modelChips(FORGE_ID, level);
-    if (kind === 'network') return modelChips(pick(netChips), level);
+    if (kind === 'portTech') return modelChips(pick(portTechChips), level);
     if (kind === 'other' && otherChips.length) return modelChips(pick(otherChips), level);
     if (kind === 'duplex') return { kind: 'chip', chip: DUPLEX_CHIP, count: 1 };
     if (kind === 'cron') return { kind: 'chip', chip: CRON_CHIP, count: 1 };

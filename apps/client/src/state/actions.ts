@@ -11,10 +11,10 @@ import {
   FORGE_ID,
   getDeviceModel,
   MONSTERS,
-  networkTech,
-  nextNetworkTech,
   neighbor,
+  nextPortTech,
   portCapacity,
+  portTech,
   TAP_DAMAGE,
   type Block,
   type Direction,
@@ -423,7 +423,7 @@ function travelDown(id: number): boolean {
   const d = getDwarf(id)!;
   const lvl = levelAt(d.depth)!;
   const port = lvl.port.value;
-  const tech = networkTech(port.tech);
+  const tech = portTech(port.tech);
   if (d.level > tech.maxDwarfLevel) {
     updateDwarf(id, STOP);
     say(`${tech.name} can't carry an L${d.level} dwarf (max L${tech.maxDwarfLevel}).`);
@@ -593,18 +593,18 @@ export function upgradePort(depth: number) {
   const lvl = levelAt(depth);
   if (!lvl) return;
   const port = lvl.port.value;
-  const tech = networkTech(port.tech);
+  const tech = portTech(port.tech);
   if (!spendChips(tech.id, chipsToUpgrade(port.level))) return;
   lvl.port.value = { ...port, level: port.level + 1 };
   say(`${tech.name} upgraded to Level ${port.level + 1}.`);
 }
 
-/** Switch to the next network technology. Carries bigger dwarves, but drops back to Level 1. */
+/** Switch to the next Port technology. Carries bigger dwarves, but drops back to Level 1. */
 export function upgradePortTech(depth: number) {
   const lvl = levelAt(depth);
   if (!lvl) return;
   const port = lvl.port.value;
-  const next = nextNetworkTech(port.tech);
+  const next = nextPortTech(port.tech);
   if (!next) return;
   if (!spendChips(next.id, chipsToUpgrade(1))) return;
   lvl.port.value = { ...port, tech: next.id, level: 1 };
