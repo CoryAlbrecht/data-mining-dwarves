@@ -30,18 +30,20 @@ describe('computers', () => {
     expect(disk(5)).toBeGreaterThan(disk(1));
   });
 
-  it('raises the Rock curve median half a Level every Mine', () => {
-    expect([1, 2, 3, 4].map(rockMedian)).toEqual([1, 1.5, 2, 2.5]);
+  it('raises the Rock curve median a quarter Level every Mine', () => {
+    expect([1, 2, 3, 4].map(rockMedian)).toEqual([3.25, 3.5, 3.75, 4]);
   });
 
   it('starts each new Computer a quarter of the way up the last one', () => {
-    // Computer 1 runs 1 → 2.5, so Computer 2 starts at 1.375 and runs 8 Mines to 4.875.
-    expect(rockMedian(5)).toBeCloseTo(1.375);
-    expect(rockMedian(12)).toBeCloseTo(4.875);
-    // Computer 3: 1.375 + (4.875 − 1.375) / 4 = 2.25, then 16 Mines to 9.75.
-    expect(rockMedian(13)).toBeCloseTo(2.25);
-    expect(rockMedian(28)).toBeCloseTo(9.75);
-    expect(rockMedian(29)).toBeCloseTo(4.125);
+    // Computer 1 runs 3.25 → 4, so Computer 2 starts at 3.4375 and runs 8 Mines to 5.1875.
+    expect(rockMedian(5)).toBeCloseTo(3.4375);
+    expect(rockMedian(12)).toBeCloseTo(5.1875);
+    // Computer 3: 3.4375 + (5.1875 − 3.4375) / 4 = 3.875, then 16 Mines to 7.625.
+    expect(rockMedian(13)).toBeCloseTo(3.875);
+    expect(rockMedian(28)).toBeCloseTo(7.625);
+    // Computer 4: 3.875 + (7.625 − 3.875) / 4 = 4.8125, then 32 Mines to 12.5625.
+    expect(rockMedian(29)).toBeCloseTo(4.8125);
+    expect(rockMedian(60)).toBeCloseTo(12.5625);
   });
 });
 

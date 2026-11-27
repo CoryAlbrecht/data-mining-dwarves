@@ -43,11 +43,12 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 - **Bit-rock Levels** follow the **Rock curve**: a bell curve (binomial, about ±1 Level) around
   the Mine's median Level. Holes are carved first, and the curve shares Levels out among the rocks
   that remain.
-- **The median climbs half a Level every Mine**, smoothly: a half-Level median blends the curves
-  either side, so each Mine is a little harder than the last. After Sneakernet the next Computer
+- **The median climbs a quarter Level every Mine**, smoothly: a fractional median blends the
+  curves either side, so each Mine is a little harder than the last. After Sneakernet the next Computer
   starts **a quarter of the way up** the previous Computer's first-to-last range, since the player
-  is rebuilding from one dwarf. With 4, 8, 16… Mines per Computer the medians run 1 → 2.5, then
-  1.4 → 4.9, then 2.3 → 9.8.
+  is rebuilding from one dwarf. With 4, 8, 16… Mines per Computer the medians run 3.25 → 4, then
+  3.4 → 5.2, then 3.9 → 7.6. The very first Mine already spreads over rock Levels 1–6, so its
+  port and buried Devices take a long while for a lone L1 dwarf.
 - **Generator version:** Mines are cached forever on the player's device, under a name that
   includes the generator's version. Any change to what a depth generates bumps the version. The
   port's position has its own random stream, so retuning never moves it under a saved Mine.
@@ -115,14 +116,19 @@ Terms are defined in `GLOSSARY.md`. The layout is built for portrait phones and 
 ## Rocks and digging
 
 Bit-rocks have a **size in bytes** that grows with their Level. Each Strike of a dwarf's pick (one
-per second) removes a fixed amount that grows with the dwarf's Level, a little more slowly than
-rocks grow. The curves are in [`FORMULAS.md` §1](FORMULAS.md#1-digging).
+per second) removes a fixed amount that grows with the dwarf's Level, more slowly than rocks
+grow, and each rock Level is a little steeper than the one before. Digging is idle-game slow:
+the curve is fitted to our own pacing targets, from seconds for an L1 rock to hours for an L7.
+The curves and targets are in [`FORMULAS.md` §1](FORMULAS.md#1-digging).
 
 | Dwarf vs. rock | Time |
 |---|---|
-| L1 vs. 120 B | 30 s |
-| L2 vs. 120 B | 20 s (faster, but not twice as fast) |
-| L2 vs. 192 B | 32 s (equal matchups slowly get longer) |
+| L1 vs. L1 | 20 s |
+| L1 vs. L5 | about 20 minutes |
+| L1 vs. L7 | about 5 hours |
+
+A merged dwarf digs a little more than twice as fast as either dwarf it was made from. The full
+grid and the pacing targets are generated in [`FORMULAS.md` §1](FORMULAS.md#1-digging).
 
 **Up to 4 dwarves can work the same rock at once**, one on each side. Their strikes add up. A
 rock keeps its remaining size if the dwarves leave. The constants are in `DIG_CURVE`

@@ -6,7 +6,7 @@ import { tunable } from './tunables.ts';
  */
 export const LOOT = tunable('LOOT', {
   /** One chip in the stack for every this many rock Levels, rounded up. */
-  levelsPerChip: 3,
+  levelsPerChip: 4,
   /** Chance of one extra chip on top. */
   bonusChance: 0.2,
   /** Bytes in a bytes bit-rock: base · growth^(depth−1), times a random 0.5–1.5. */

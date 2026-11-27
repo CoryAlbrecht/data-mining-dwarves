@@ -59,32 +59,37 @@ Source: `DIG_CURVE` in [`digging.ts`](../packages/shared/src/digging.ts).
 | Constant | Value | Meaning |
 | --- | --- | --- |
 | `baseRockSize` | 120 B | Size of a Level 1 bit-rock |
-| `baseSeconds` | 30 s | Time for an L1 dwarf to dig a Level 1 rock alone |
-| `rockGrowth` | 1.6 | Size multiplier per rock Level |
-| `dwarfGrowth` | 1.5 | Strike multiplier per dwarf Level |
+| `baseSeconds` | 20 s | Time for an L1 dwarf to dig a Level 1 rock alone |
+| `rockGrowth` | 2.4 | Size multiplier per rock Level |
+| `rockBend` | 1.045 | Extra size multiplier per rock Level, compounding (1 = plain exponential) |
+| `dwarfGrowth` | 2.1 | Strike multiplier per dwarf Level |
 | `strikeSeconds` | 1 s | Time between Strikes |
 
 ### Bit-rock size
 
 ```
-rockSize(r) = round(120 · 1.6^(r−1))        r = the bit-rock's Level
+rockSize(r) = round(120 · 2.4^(r−1) · 1.045^((r−1)²))        r = the bit-rock's Level
 ```
+
+The `rockBend` term makes each Level a little steeper than the one before: from Level r to r+1 a
+rock grows by 2.4 · 1.045^(2r−1), so ×2.5 from L1 to L2 and ×4.2 from L7 to L8. With
+`rockBend = 1` the size is the plain exponential `round(120 · rockGrowth^(r−1))`.
 
 <!-- rock-size -->
 | r | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 15 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| bytes | 120 | 192 | 307 | 492 | 786 | 1,258 | 2,013 | 3,221 | 5,154 | 8,246 | 21,111 | 86,469 |
+| bytes | 120 | 301 | 824 | 2,465 | 8,052 | 28,717 | 111,850 | 475,727 | 2,209,601 | 11,207,325 | 375,470,697 | 140,906,671,995 |
 
 ### Strike damage
 
 ```
-strikeDamage(d) = (120 / 30) · 1.5^(d−1) = 4 · 1.5^(d−1) bytes per Strike     d = dwarf Level
+strikeDamage(d) = (120 / 20) · 2.1^(d−1) = 6 · 2.1^(d−1) bytes per Strike     d = dwarf Level
 ```
 
 <!-- strike -->
 | d | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B/Strike | 4 | 6 | 9 | 13.5 | 20.25 | 30.38 | 45.56 | 68.34 | 102.52 |
+| B/Strike | 6 | 12.6 | 26.46 | 55.57 | 116.69 | 245.05 | 514.6 | 1,080.65 | 2,269.37 |
 
 Damage can be fractional. The rock's remaining size is tracked exactly.
 
@@ -112,17 +117,49 @@ time ≈ remaining bytes / Σ strikeDamage(dᵢ)       (in whole Strikes)
 <!-- dig-grid -->
 | Dwarf \ Rock | L1 | L2 | L3 | L4 | L5 | L6 | L7 | L8 | L9 | L10 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **L1** | 30 | 48 | 77 | 123 | 197 | 315 | 504 | 806 | 1,289 | 2,062 |
-| **L2** | 20 | 32 | 52 | 82 | 131 | 210 | 336 | 537 | 859 | 1,375 |
-| **L3** | 14 | 22 | 35 | 55 | 88 | 140 | 224 | 358 | 573 | 917 |
-| **L4** | 9 | 15 | 23 | 37 | 59 | 94 | 150 | 239 | 382 | 611 |
-| **L5** | 6 | 10 | 16 | 25 | 39 | 63 | 100 | 160 | 255 | 408 |
-| **L6** | 4 | 7 | 11 | 17 | 26 | 42 | 67 | 107 | 170 | 272 |
-| **L7** | 3 | 5 | 7 | 11 | 18 | 28 | 45 | 71 | 114 | 181 |
-| **L8** | 2 | 3 | 5 | 8 | 12 | 19 | 30 | 48 | 76 | 121 |
+| **L1** | 20 | 51 | 138 | 411 | 1,342 | 4,787 | 18,642 | 79,288 | 368,267 | 1,867,888 |
+| **L2** | 10 | 24 | 66 | 196 | 640 | 2,280 | 8,877 | 37,757 | 175,366 | 889,471 |
+| **L3** | 5 | 12 | 32 | 94 | 305 | 1,086 | 4,228 | 17,980 | 83,508 | 423,558 |
+| **L4** | 3 | 6 | 15 | 45 | 145 | 517 | 2,013 | 8,562 | 39,766 | 201,694 |
+| **L5** | 2 | 3 | 8 | 22 | 70 | 247 | 959 | 4,077 | 18,936 | 96,045 |
+| **L6** | 1 | 2 | 4 | 11 | 33 | 118 | 457 | 1,942 | 9,018 | 45,736 |
+| **L7** | 1 | 1 | 2 | 5 | 16 | 56 | 218 | 925 | 4,294 | 21,779 |
+| **L8** | 1 | 1 | 1 | 3 | 8 | 27 | 104 | 441 | 2,045 | 10,371 |
 
-Down the diagonal (an equal matchup) the time grows by 1.6 / 1.5 ≈ ×1.067 per Level:
-30, 32, 35, 37, 39, 42, 45, 48 s.
+Down the diagonal (an equal matchup) the time grows by (2.4 / 2.1) · 1.045^(2d−1) from Level d to
+d+1, so ×1.19 at first and faster after: 20, 24, 32, 45, 70, 118, 218, 441 s.
+
+### Pacing targets
+
+The dig curve was fitted to these target times for one dwarf (`PACING_TARGETS` in
+[`digging.ts`](../packages/shared/src/digging.ts)), our own guess at how long an idle game should
+make a rock feel. `digging.test.ts` holds `digSeconds` within −25%/+30% of every row.
+
+<!-- pacing -->
+| Dwarf | Rock | Target | digSeconds | Off by |
+| --- | --- | --- | --- | --- |
+| L1 | L1 | 20 s | 20 s | 0% |
+| L1 | L2 | 40 s | 51 s | +27% |
+| L1 | L3 | 3 m | 2 m 18 s | −23% |
+| L1 | L4 | 7 m | 6 m 51 s | −2% |
+| L1 | L5 | 21 m | 22 m 22 s | +7% |
+| L1 | L6 | 1 h 5 m | 1 h 19 m | +23% |
+| L1 | L7 | 4 h 38 m | 5 h 10 m | +12% |
+| L2 | L3 | 1 m | 1 m 6 s | +10% |
+| L2 | L4 | 4 m | 3 m 16 s | −18% |
+| L2 | L5 | 10 m | 10 m 40 s | +7% |
+| L2 | L6 | 31 m | 38 m | +23% |
+| L2 | L7 | 2 h 13 m | 2 h 27 m | +11% |
+| L3 | L4 | 2 m | 1 m 34 s | −22% |
+| L3 | L5 | 5 m | 5 m 5 s | +2% |
+| L3 | L6 | 15 m | 18 m 6 s | +21% |
+| L3 | L7 | 1 h 3 m | 1 h 10 m | +12% |
+| L4 | L7 | 30 m | 33 m 33 s | +12% |
+| L6 | L8 | 32 m | 32 m 22 s | +1% |
+
+To compare the bent curve with a plain exponential one (`rockGrowth` 3, `rockBend` 1), put a
+preset in front: `config/presets/dig-bent.env` (the defaults, spelled out) or
+`config/presets/dig-plain.env`. The plain curve is slower up to rock Level 6 and quicker after.
 
 ---
 
@@ -228,14 +265,14 @@ and `rockLevelCounts` in [`layout.ts`](../packages/shared/src/layout.ts).
 <!-- rock-curve -->
 | Constant | Value | Meaning |
 | --- | --- | --- |
-| `firstMedian` | 1 | Median of the very first Mine |
-| `perMine` | 0.5 | Rise per Mine within a Computer |
+| `firstMedian` | 3.25 | Median of the very first Mine |
+| `perMine` | 0.25 | Rise per Mine within a Computer |
 | `handover` | 0.25 | A new Computer starts this far up the last one's first-to-last rise |
 
 ```
-start(0)    = 1
-start(c+1)  = start(c) + (computerLength(c) − 1) · 0.5 · 0.25
-rockMedian  = start(c) + index · 0.5
+start(0)    = 3.25
+start(c+1)  = start(c) + (computerLength(c) − 1) · 0.25 · 0.25
+rockMedian  = start(c) + index · 0.25
 ```
 
 The handover adds up: each Computer's start = the previous start + a quarter of the previous
@@ -244,10 +281,10 @@ Computer's rise.
 <!-- medians -->
 | Computer | First Mine median | Last Mine median |
 | --- | --- | --- |
-| C1 (depths 1–4) | 1 | 2.5 |
-| C2 (depths 5–12) | 1.375 | 4.875 |
-| C3 (depths 13–28) | 2.25 | 9.75 |
-| C4 (depths 29–60) | 4.125 | 19.625 |
+| C1 (depths 1–4) | 3.25 | 4 |
+| C2 (depths 5–12) | 3.438 | 5.188 |
+| C3 (depths 13–28) | 3.875 | 7.625 |
+| C4 (depths 29–60) | 4.813 | 12.563 |
 
 ### Level spread
 
@@ -275,12 +312,11 @@ Example spreads for a Mine of 60 rocks (Level: count):
 <!-- spreads -->
 | Median | Spread |
 | --- | --- |
-| 1 | 1: 41, 2: 15, 3: 4 |
-| 1.5 | 1: 30, 2: 19, 3: 9, 4: 2 |
-| 2 | 1: 19, 2: 22, 3: 15, 4: 4 |
-| 2.5 (C1 last) | 1: 11, 2: 19, 3: 19, 4: 9, 5: 2 |
-| 4.875 (C2 last) | 3: 5, 4: 16, 5: 22, 6: 14, 7: 3 |
-| 9.75 (C3 last) | 7: 1, 8: 6, 9: 17, 10: 21, 11: 12, 12: 3 |
+| 3.25 (C1 first) | 1: 3, 2: 12, 3: 21, 4: 17, 5: 6, 6: 1 |
+| 3.5 (C1 second) | 1: 2, 2: 9, 3: 19, 4: 19, 5: 9, 6: 2 |
+| 4 (C1 last) | 2: 4, 3: 15, 4: 22, 5: 15, 6: 4 |
+| 5.188 (C2 last) | 3: 3, 4: 13, 5: 21, 6: 16, 7: 6, 8: 1 |
+| 7.625 (C3 last) | 5: 1, 6: 8, 7: 18, 8: 20, 9: 11, 10: 2 |
 
 ### Placement
 
@@ -413,13 +449,13 @@ Byte loot depends on **depth**, not on the rock's Level.
 ### Chip stacks
 
 ```
-chipCount(r)          = ceil(r / 3) + (1 with 20% chance)      model chips: Device, fork(), Port technology
-encryptedChipCount(r) = 3 · ceil(r / 3)                        no bonus chip
+chipCount(r)          = ceil(r / 4) + (1 with 20% chance)      model chips: Device, fork(), Port technology
+encryptedChipCount(r) = 3 · ceil(r / 4)                        no bonus chip
 Duplex and cron       = always 1
 ```
 
 <!-- chip-stacks -->
-| Rock Level | 1–3 | 4–6 | 7–9 | 10–12 | 13–15 |
+| Rock Level | 1–4 | 5–8 | 9–12 | 13–16 | 17–20 |
 | --- | --- | --- | --- | --- | --- |
 | Ordinary stack | 1 (20%: 2) | 2 (20%: 3) | 3 (20%: 4) | 4 (20%: 5) | 5 (20%: 6) |
 | Encrypted stack | 3 | 6 | 9 | 12 | 15 |
@@ -606,17 +642,20 @@ Bytes are displayed with 1024-based units (`1536 → "1.5 kB"`), in
 These are things the formulas show when you lay them side by side. They're observations, not
 decisions. Change the tuning in `packages/shared`, then update this page.
 
-1. **Byte loot outgrows digging effort.** Byte loot grows ×1.5 per Mine. Rock size at the median
-   grows only ×1.6^0.5 ≈ ×1.26 per Mine, so bytes per second of digging snowball with depth.
-   Byte loot also follows global depth, but the Rock curve drops back at each Sneakernet. So
-   C2's first Mine (median 1.375) pays about 41 B a rock, against 8 B on depth 1.
-2. **Early byte loot is small next to Devices.** On depth 1 a bytes rock pays about 8 B for 30 s
-   of digging. The 4004 makes 1 B/s on its own, and the first extra dwarf costs 50 B. Early
+1. **Byte loot outgrows digging effort, slowly.** Byte loot grows ×1.5 per Mine. The median
+   climbs a quarter Level per Mine, so rock size at the median grows about ×1.33 per Mine early
+   on (median 3–4) and ×1.43 by median 7, catching up as the bend steepens. Byte loot also
+   follows global depth, but the Rock curve drops back at each Sneakernet. So C2's first Mine
+   (median 3.4375) pays about 41 B a rock, against 8 B on depth 1 (median 3.25), for rocks of
+   much the same size.
+2. **Early byte loot is small next to Devices.** On depth 1 a bytes rock pays about 8 B for 2 to 7
+   minutes of digging (an L3 or L4 rock for one L1 dwarf). The 4004 makes 1 B/s on its own, and the first extra dwarf costs 50 B. Early
    income is mostly Devices.
-3. **Merging lowers total digging power.** Two L1 dwarves strike 8 B/s together, while the L2 they
-   merge into strikes 6 B/s (×0.75 per merge). Merging pays off through per-rock speed, fewer
-   bodies to pass through low-capacity ports, and getting under the technology cap. Raising
-   fork()'s Level skips that cost, because a fork() dwarf costs the same at any Level.
+3. **Merging gains a little digging power.** Two L1 dwarves strike 12 B/s together, while the L2
+   they merge into strikes 12.6 B/s (×1.05 per merge). Merging is never a loss, and it also pays
+   through per-rock speed, fewer bodies to pass through low-capacity ports, and getting under the
+   technology cap. Raising fork()'s Level adds to that, because a fork() dwarf costs the same at
+   any Level.
 4. **Upgrades return the same on every Level.** Each Device Level costs ×1.5 more chips and gives
    ×1.5 more output. A newer model doubles base output for every tier it climbs. DRAM climbs a
    tier every Mine, so new models soon matter more than Levels.

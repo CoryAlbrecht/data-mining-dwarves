@@ -3,42 +3,62 @@ import { tunable } from './tunables.ts';
 /**
  * Bit-rocks have a size in bytes; each strike of a dwarf's pick removes some of it.
  *
- *   rockSize(r)       = 120 B · 1.6^(r−1)          (r = rock "level", only used to generate sizes)
- *   strikeDamage(d)   = 4 B · 1.5^(d−1)            (d = dwarf level, one strike per second)
+ *   rockSize(r)       = 120 B · 2.4^(r−1) · 1.045^((r−1)²)   (r = rock "level", only used to generate sizes)
+ *   strikeDamage(d)   = 6 B · 2.1^(d−1)                      (d = dwarf level, one strike per second)
  *   seconds to dig    = ceil(size / damage) strikes
  *
- * That gives: L1 dwarf vs 120 B (L1) rock = 30 s; L2 dwarf vs L1 rock = 20 s (faster, but not
- * twice as fast); L2 vs L2 (192 B) = 32 s; equal matchups keep slowly getting longer, because
- * ROCK_GROWTH > DWARF_GROWTH.
+ * That gives: L1 dwarf vs 120 B (L1) rock = 20 s; L1 vs L2 = 51 s; L2 vs L3 = 66 s. The bend
+ * (`rockBend`) makes each rock Level a little steeper than the last, so deep rocks reward merging;
+ * with `rockBend = 1` the size is the plain exponential curve. A merge gains digging power:
+ * one L(d+1) dwarf strikes 2.1× an L(d) dwarf, a bit more than the two dwarves it was made from.
+ * The numbers were fitted to the pacing targets in docs/FORMULAS.md.
  *
  * Up to 4 dwarves can strike the same rock at once (one from each orthogonal side).
  */
 export const DIG_CURVE = tunable('DIG_CURVE', {
   baseRockSize: 120,
-  baseSeconds: 30,
-  rockGrowth: 1.6,
-  dwarfGrowth: 1.5,
+  baseSeconds: 20,
+  rockGrowth: 2.4,
+  rockBend: 1.045,
+  dwarfGrowth: 2.1,
   strikeSeconds: 1,
 } as const);
 
-export function rockSize(rockLevel: number): number {
-  return Math.round(DIG_CURVE.baseRockSize * DIG_CURVE.rockGrowth ** (rockLevel - 1));
+/**
+ * The pacing targets DIG_CURVE was fitted to: [dwarf Level, rock Level, target seconds] for one
+ * dwarf. Our own guess at how long an idle game should make a rock feel; not a tunable, since
+ * nothing in the game reads it. digging.test.ts holds digSeconds within −25%/+30% of each.
+ */
+export const PACING_TARGETS: readonly (readonly [dwarf: number, rock: number, seconds: number])[] = [
+  [1, 1, 20], [1, 2, 40], [1, 3, 180], [1, 4, 420], [1, 5, 1260], [1, 6, 3900], [1, 7, 16680],
+  [2, 3, 60], [2, 4, 240], [2, 5, 600], [2, 6, 1860], [2, 7, 7980],
+  [3, 4, 120], [3, 5, 300], [3, 6, 900], [3, 7, 3780],
+  [4, 7, 1800],
+  [6, 8, 1920],
+];
+
+/** The dig curve's numbers; the functions below take another one to compare curves. */
+export type DigCurve = typeof DIG_CURVE;
+
+export function rockSize(rockLevel: number, curve: DigCurve = DIG_CURVE): number {
+  const steps = rockLevel - 1;
+  return Math.round(curve.baseRockSize * curve.rockGrowth ** steps * curve.rockBend ** (steps * steps));
 }
 
 /** Bytes removed by one strike. */
-export function strikeDamage(dwarfLevel: number): number {
-  const base = (DIG_CURVE.baseRockSize / DIG_CURVE.baseSeconds) * DIG_CURVE.strikeSeconds;
-  return base * DIG_CURVE.dwarfGrowth ** (dwarfLevel - 1);
+export function strikeDamage(dwarfLevel: number, curve: DigCurve = DIG_CURVE): number {
+  const base = (curve.baseRockSize / curve.baseSeconds) * curve.strikeSeconds;
+  return base * curve.dwarfGrowth ** (dwarfLevel - 1);
 }
 
 /** Seconds for one dwarf to dig out `bytes` of rock. */
-export function secondsToDig(dwarfLevel: number, bytes: number): number {
-  return Math.max(1, Math.ceil(bytes / strikeDamage(dwarfLevel) - 1e-9)) * DIG_CURVE.strikeSeconds;
+export function secondsToDig(dwarfLevel: number, bytes: number, curve: DigCurve = DIG_CURVE): number {
+  return Math.max(1, Math.ceil(bytes / strikeDamage(dwarfLevel, curve) - 1e-9)) * curve.strikeSeconds;
 }
 
 /** Seconds for a dwarf of level d to dig a rock of level r on its own. */
-export function digSeconds(dwarfLevel: number, rockLevel: number): number {
-  return secondsToDig(dwarfLevel, rockSize(rockLevel));
+export function digSeconds(dwarfLevel: number, rockLevel: number, curve: DigCurve = DIG_CURVE): number {
+  return secondsToDig(dwarfLevel, rockSize(rockLevel, curve), curve);
 }
 
 // ── Grid movement ─────────────────────────────────────────────────────────────
