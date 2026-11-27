@@ -20,6 +20,8 @@ const SHORTEN: [RegExp, string][] = [
 /**
  * Text for a Device's label cells, in reading order: the kind first, then the model spread over
  * the remaining cells. E.g. a 2×2 CPU → ["CPU", "4004"]; a 3×3 floppy → ["DISK", "5¼″", "360kB", "FD"…].
+ * When there are more words than cells, the last cell takes the rest joined by spaces, and the
+ * cell wraps them across lines: a 2-label-cell 8″ 80 kB Floppy → ["DISK", "8″ 80kB FD"].
  */
 export function deviceLabels(model: string, cells: number): string[] {
   const m = getDeviceModel(model);
@@ -29,10 +31,10 @@ export function deviceLabels(model: string, cells: number): string[] {
   const words = name.trim().split(/\s+/);
   const out = [KIND[m.kind]];
   const room = cells - 1;
-  // One word per cell; if there are more words than cells, the last cell takes the rest.
+  // One word per cell; if there are more words than cells, the last cell takes the rest, spaced.
   for (const word of words) {
     if (out.length - 1 < room) out.push(word);
-    else out[out.length - 1] = `${out.at(-1)}${word}`;
+    else out[out.length - 1] = `${out.at(-1)} ${word}`;
   }
   return padTo(out, cells, () => '');
 }
