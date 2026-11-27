@@ -56,8 +56,12 @@ export interface PortLabel {
   big: boolean;
 }
 
-/** A port label cell: `lines` drawn big or small. */
-export const labelCell = (big: boolean, ...lines: string[]): PortLabel => ({ lines, big });
+/** A port label cell drawn small: the technology name, speed or `USB`. */
+export const smallLabel = (...lines: string[]): PortLabel => ({ lines, big: false });
+/** A port label cell drawn big: Capacity and max Level. */
+export const bigLabel = (...lines: string[]): PortLabel => ({ lines, big: true });
+/** A port cell with no label text. */
+export const noLabel = (): PortLabel => smallLabel();
 
 /**
  * A dug-out Network port's label cells, left to right, by port width:
@@ -66,12 +70,12 @@ export const labelCell = (big: boolean, ...lines: string[]): PortLabel => ({ lin
  */
 export function portLabels(port: PortState, cells: number): PortLabel[] {
   const tech = networkTech(port.tech);
-  const name = labelCell(false, PORT_TECH_SHORT[tech.id]);
+  const name = smallLabel(PORT_TECH_SHORT[tech.id]);
   const use = `${port.passed}/${portCapacity(port.level)}`;
   const max = `≤L${tech.maxDwarfLevel}`;
   const out =
-    cells <= 2 ? [name, labelCell(true, use, max)]
-    : cells === 3 ? [name, labelCell(true, use), labelCell(true, max)]
-    : [name, labelCell(false, portSpeed(port)), labelCell(true, use), labelCell(true, max)];
-  return padTo(out, cells, () => labelCell(false));
+    cells <= 2 ? [name, bigLabel(use, max)]
+    : cells === 3 ? [name, bigLabel(use), bigLabel(max)]
+    : [name, smallLabel(portSpeed(port)), bigLabel(use), bigLabel(max)];
+  return padTo(out, cells, noLabel);
 }
