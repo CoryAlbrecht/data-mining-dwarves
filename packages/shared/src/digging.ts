@@ -1,3 +1,5 @@
+import { tunable } from './tunables.ts';
+
 /**
  * Bit-rocks have a size in bytes; each strike of a dwarf's pick removes some of it.
  *
@@ -11,13 +13,13 @@
  *
  * Up to 4 dwarves can strike the same rock at once (one from each orthogonal side).
  */
-export const DIG_CURVE = {
+export const DIG_CURVE = tunable('DIG_CURVE', {
   baseRockSize: 120,
   baseSeconds: 30,
   rockGrowth: 1.6,
   dwarfGrowth: 1.5,
   strikeSeconds: 1,
-} as const;
+} as const);
 
 export function rockSize(rockLevel: number): number {
   return Math.round(DIG_CURVE.baseRockSize * DIG_CURVE.rockGrowth ** (rockLevel - 1));

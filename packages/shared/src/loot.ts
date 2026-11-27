@@ -1,8 +1,10 @@
+import { tunable } from './tunables.ts';
+
 /**
  * What a bit-rock holds when it breaks. A model chip (a Device, fork() or Port technology)
  * comes as a small stack that grows with the rock's Level; duplex and cron chips come singly.
  */
-export const LOOT = {
+export const LOOT = tunable('LOOT', {
   /** One chip in the stack for every this many rock Levels, rounded up. */
   levelsPerChip: 3,
   /** Chance of one extra chip on top. */
@@ -36,7 +38,7 @@ export const LOOT = {
     duplex: 0.015,
     cron: 0.015,
   },
-} as const;
+} as const);
 
 export type LootKind = keyof typeof LOOT.share;
 

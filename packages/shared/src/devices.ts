@@ -1,3 +1,5 @@
+import { tunable } from './tunables.ts';
+
 /**
  * Hardware catalog. Every device model has a chip of the same id; chips work like cards:
  * spend enough of them and that model's level goes up, so it produces more bytes.
@@ -149,7 +151,7 @@ export function modelAt(kind: ProducingKind, tier: number): DeviceModel {
 }
 
 // ── Economy curves ────────────────────────────────────────────────────────────
-export const ECONOMY = {
+export const ECONOMY = tunable('ECONOMY', {
   /** Chips to go from level L to L+1: ceil(chipBase · chipGrowth^(L−1)). */
   chipBase: 2,
   chipGrowth: 1.5,
@@ -162,7 +164,7 @@ export const ECONOMY = {
   /** Dwarf n (0-based count already bought) costs round(dwarfBase · dwarfGrowth^n) bytes. */
   dwarfBase: 50,
   dwarfGrowth: 1.25,
-} as const;
+} as const);
 
 export function chipsToUpgrade(level: number): number {
   return Math.ceil(ECONOMY.chipBase * ECONOMY.chipGrowth ** (level - 1));

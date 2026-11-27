@@ -24,6 +24,33 @@ is the first Computer.
 
 ---
 
+## Overriding a tunable
+
+Every table below shows the code's defaults, which tests, `npm run formulas` and production play.
+To try other numbers without editing code, set an env override and restart `npm run dev`
+(decision: [ADR 0002](adr/0002-tunables-from-env-overrides.md)).
+
+- **Name**: `DMD_<OBJECT>__<KEY>`, the exported constant's name and then its key in
+  SCREAMING_SNAKE_CASE, with `__` before each nested key: `DMD_DIG_CURVE__ROCK_GROWTH=2.4`,
+  `DMD_LOOT__BYTES__BASE=10`, `DMD_PART_PACE__DRAM__PER_LEVEL=2`, `DMD_MONSTERS__KERNEL_PANIC__HP=60`.
+  Only numbers can be overridden, and arrays of numbers as JSON (`DMD_LAYOUT__ENTRY_COLUMNS=[3,4]`).
+  The tunable objects are `CLOCK`, `DIG_CURVE`, `ECONOMY`, `LAYOUT`, `LOOT`, `MONSTER_SPAWN`,
+  `MONSTERS`, `PART_PACE` and `ROCK_CURVE`. A new one is declared with `tunable()` from
+  [`tunables.ts`](../packages/shared/src/tunables.ts), and then answers to the same rule.
+- **Where**: `npm run dev` and `npm run mine-stats` load `config/.env.development`, then
+  `config/.env`; the first file to set a name wins, and a variable already in the shell beats both.
+  The production runs (`npm run build`, `npm start -w @dmd/server`) load only `config/.env`: keep
+  it empty so production plays the defaults. Presets go in `config/presets/`, and
+  personal files in `config/<name>.local.env` (git-ignored); put one in front with
+  `npx dotenvx run -f config/presets/quick-dig.env -- npm run dev`.
+- **Checks**: a value that is not a number, or a `DMD_*` name that names no tunable, stops startup
+  with an error naming it. `npm test` ignores every override.
+- **Saves**: an override reaches the server, the client and Mine generation alike. The Mine cache
+  name carries a hash of the overrides, so new values get freshly generated Mines; saves are not
+  converted, so use `?reset` after switching presets.
+
+---
+
 ## 1. Digging
 
 Source: `DIG_CURVE` in [`digging.ts`](../packages/shared/src/digging.ts).

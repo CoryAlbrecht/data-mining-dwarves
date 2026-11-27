@@ -12,18 +12,19 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev -w @dmd/server\" \"npm run dev -w @dmd/client\"",
-    "build": "npm run typecheck && npm run build -w @dmd/client",
+    "dev": "dotenvx run -f ./config/.env.development -f ./config/.env -- concurrently -k -n server,client -c yellow,cyan \"npm run dev -w @dmd/server\" \"npm run dev -w @dmd/client\"",
+    "build": "npm run typecheck && dotenvx run -f ./config/.env -- npm run build -w @dmd/client",
     "typecheck": "npm run typecheck --workspaces --if-present && tsc -p scripts",
     "test": "vitest run",
     "preview": "npm run preview -w @dmd/client",
     "fonts:unifont": "python3 -I scripts/build-unifont.py",
     "formulas": "tsx scripts/formulas.ts",
-    "mine-stats": "tsx scripts/mine-stats.ts",
+    "mine-stats": "dotenvx run -f ./config/.env.development -f ./config/.env -- tsx scripts/mine-stats.ts",
     "serve:private": "tsx scripts/serve-private.ts",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^2.38.2",
     "@types/node": "^26.6.6",
     "concurrently": "^10.0.7",
     "tsx": "^4.23.15",

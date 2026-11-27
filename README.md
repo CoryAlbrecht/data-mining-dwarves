@@ -32,6 +32,10 @@ In dev, add `?speed=20` to the URL to fast-forward the game clock for playtestin
 to wipe this browser's save, caches and service worker and start over as a first-time visitor
 (the page reloads without the flag; other flags like `?speed` are kept).
 
+To try other tunable numbers without editing code, add `DMD_<OBJECT>__<KEY>` overrides (e.g.
+`DMD_DIG_CURVE__ROCK_GROWTH=2.4`) to `config/.env.development` and restart `npm run dev`. See
+"Overriding a tunable" in [`docs/FORMULAS.md`](docs/FORMULAS.md).
+
 For a private copy on free ports (API, client and headless Chrome, as agents use for browser
 checks), run `npm run serve:private`; stop it with `npm run serve:private -- stop <id>` (or every copy
 with a bare `stop`). To move your

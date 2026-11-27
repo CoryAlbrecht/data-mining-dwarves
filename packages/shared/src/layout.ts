@@ -1,5 +1,6 @@
 import { rockSize } from './digging.ts';
 import { portTechAt, type PortTechId } from './network.ts';
+import { overridesHash, tunable } from './tunables.ts';
 
 /**
  * Version of the Mine generator. Bump it whenever generation changes what a depth produces:
@@ -10,14 +11,22 @@ export const GENERATOR_VERSION = 5;
 /** Every generator's Mines cache name starts with this (the first one was just this). */
 export const LEVELS_CACHE_PREFIX = 'dmd-levels';
 
-/** Service-worker cache holding this generator's Mines. */
-export const LEVELS_CACHE = `${LEVELS_CACHE_PREFIX}-v${GENERATOR_VERSION}`;
+/** Name of the cache for this generator's Mines whose overrides hash to `hash`. */
+export function levelsCacheName(hash: string): string {
+  return `${LEVELS_CACHE_PREFIX}-v${GENERATOR_VERSION}${hash ? `-${hash}` : ''}`;
+}
+
+/**
+ * Service-worker cache holding this generator's Mines. Env overrides (tunables.ts) can change what
+ * a depth generates, so their hash is part of the name; with none it is just the version.
+ */
+export const LEVELS_CACHE = levelsCacheName(overridesHash());
 
 /** Every Mine is this size. Width stays fixed for thumb-sized cells in portrait. */
 export const MINE_WIDTH = 8;
 export const MINE_HEIGHT = 12;
 
-export const LAYOUT = {
+export const LAYOUT = tunable('LAYOUT', {
   /** Share of starting holes in the 2nd row from the bottom (the bottom row is always empty)… */
   holesLow: 0.6,
   /** …falling in a straight line to this share in the top row. */
@@ -39,7 +48,7 @@ export const LAYOUT = {
   entryColumns: [2, 3, 4, 5],
   /** A buried Device holds one rock's bytes for every this many cells of footprint, rounded up. */
   deviceCellsPerRock: 2,
-} as const;
+} as const);
 
 /** Seed of the Mine at `depth`: every random choice in it comes from mulberry32(seed). */
 export function mineSeed(depth: number): number {

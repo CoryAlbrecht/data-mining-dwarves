@@ -1,5 +1,6 @@
 import { mulberry32 } from './rng.ts';
 import { modelAt, type DeviceModel, type ProducingKind } from './devices.ts';
+import { tunable } from './tunables.ts';
 
 /**
  * The game is a series of computers. Each computer is a run of levels; the last level of a
@@ -61,11 +62,11 @@ export function cpuTier(computer: number): number {
  * computer made, so it drops lower than where the last computer ended but never all the way
  * back to the start.
  */
-export const PART_PACE: Record<Exclude<ProducingKind, 'cpu'>, { perLevel: number; keep: number }> = {
+export const PART_PACE = tunable<Record<Exclude<ProducingKind, 'cpu'>, { perLevel: number; keep: number }>>('PART_PACE', {
   dram: { perLevel: 1, keep: 0.75 },
   storage: { perLevel: 0.75, keep: 0.5 },
   vram: { perLevel: 0.5, keep: 0.5 },
-};
+});
 
 export function partTier(kind: Exclude<ProducingKind, 'cpu'>, computer: number, index: number): number {
   const { perLevel, keep } = PART_PACE[kind];
@@ -91,14 +92,14 @@ export function hardwareFor(depth: number): DeviceModel[] {
 }
 
 /** How the Rock curve's median climbs (GLOSSARY.md: Rock curve). */
-export const ROCK_CURVE = {
+export const ROCK_CURVE = tunable('ROCK_CURVE', {
   /** Median Level of the very first Mine. */
   firstMedian: 1,
   /** Levels the median rises with each Mine of a Computer. */
   perMine: 0.5,
   /** A new Computer starts this far up the previous Computer's first-to-last range. */
   handover: 0.25,
-} as const;
+} as const);
 
 /**
  * Median bit-rock Level of the Mine at `depth`. It climbs smoothly through a Computer; after

@@ -2,13 +2,20 @@ import babel from '@rolldown/plugin-babel';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { LEVELS_CACHE } from '@dmd/shared';
+import { assertKnownOverrides, LEVELS_CACHE, overridesIn } from '@dmd/shared';
 
 // Ports and cache dir can be moved, e.g. to run a second copy beside a developer's own `npm run dev`:
 // CLIENT_PORT (default 5173), API_PORT (where /api is proxied, default 8787), VITE_CACHE_DIR.
 const env = process.env;
 
+// Tunable overrides (DMD_*, from the env files `npm run dev` loads; see packages/shared/src/tunables.ts).
+// Loading @dmd/shared already threw on a malformed value; an unknown name stops startup here.
+assertKnownOverrides(env);
+
 export default defineConfig({
+  // The client reads its overrides from this copy, written in once at startup: change a value,
+  // restart `npm run dev`.
+  define: { __DMD_ENV__: JSON.stringify(Object.fromEntries(overridesIn(env))) },
   ...(env.VITE_CACHE_DIR ? { cacheDir: env.VITE_CACHE_DIR } : {}),
   // The signals Babel transform injects `@preact/signals-react/runtime` imports that the dep scanner
   // can't see. Pre-bundle them up front, or Vite re-optimizes mid-load and the page can end up with
