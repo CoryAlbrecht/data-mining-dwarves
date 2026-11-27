@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { NEW_PORT, type PortState } from '@dmd/shared';
-import { bigLabel, portLabels, smallLabel } from './labels.ts';
+import { bigLabel, deviceLabels, portLabels, smallLabel } from './labels.ts';
 
 const port = (p: Partial<PortState> = {}): PortState => ({ ...NEW_PORT, ...p });
+
+describe('deviceLabels', () => {
+  it('puts the kind first, then one model word per cell', () => {
+    expect(deviceLabels('storage:8-80-kb-floppy', 4)).toEqual(['DISK', '8″', '80kB', 'FD']);
+  });
+
+  it('joins the leftover words in the last cell with spaces, so the cell can wrap them', () => {
+    expect(deviceLabels('storage:8-80-kb-floppy', 2)).toEqual(['DISK', '8″ 80kB FD']);
+  });
+});
 
 describe('portLabels', () => {
   it('stacks in use/Port capacity over max Level in the second cell of a 2-wide port', () => {
