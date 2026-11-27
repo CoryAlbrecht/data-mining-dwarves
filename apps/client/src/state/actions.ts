@@ -521,7 +521,7 @@ export function closeDialog() {
   dialogSubject.value = null;
 }
 
-/** A Device's collect spot: collect its bytes, or for fork(), buy a dwarf. */
+/** A Device's Collect button: collect its bytes, or for fork(), buy a dwarf. */
 export function useDevice(depth: number, id: number) {
   const lvl = levelAt(depth);
   if (!lvl) return;

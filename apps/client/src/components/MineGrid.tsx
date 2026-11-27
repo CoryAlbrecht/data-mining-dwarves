@@ -16,7 +16,7 @@ function Wall({ glyph, className = '', ...rest }: { glyph: string } & HTMLAttrib
 
 /**
  * A dug-out port cell's label: one line, or two stacked. --chars (the longest line) shrinks the
- * text to fit across the cell; big cells (Capacity, max Level) get a larger size.
+ * text to fit across the cell; big cells (Port capacity, max Level) get a larger size.
  */
 function PortLabelText({ label: { lines, big } }: { label: PortLabel }) {
   const chars = Math.max(big ? 3 : 4, ...lines.map((l) => l.length));
