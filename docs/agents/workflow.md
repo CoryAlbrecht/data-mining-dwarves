@@ -91,7 +91,7 @@ order, oldest-created first within each, and takes the first item that qualifies
 
 ## Enforcement
 
-GitHub branch protection is unavailable (private repo without Pro), so a PreToolUse hook,
+GitHub branch protection is not configured on `main`, so a PreToolUse hook,
 `scripts/block-main-checkout.ts`, is the only guard. It blocks:
 
 - `Edit`, `Write` and `NotebookEdit` on paths inside the main checkout, its `.git/` directory

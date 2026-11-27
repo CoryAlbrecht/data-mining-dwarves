@@ -27,7 +27,7 @@ A vague "work on something" request with no target goes to `/next-work`.
 
 ### Issue tracker
 
-GitHub Issues on the private repo `CoryAlbrecht/data-mining-dwarves`, managed with `gh`. See `docs/agents/issue-tracker.md`.
+GitHub Issues on the public repo `CoryAlbrecht/data-mining-dwarves`, managed with `gh`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

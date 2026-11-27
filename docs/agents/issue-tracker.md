@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Issues and specs for this repo live as GitHub issues in the private repo `CoryAlbrecht/data-mining-dwarves`. Use the `gh` CLI for all operations.
+Issues and specs for this repo live as GitHub issues in the public repo `CoryAlbrecht/data-mining-dwarves`. Use the `gh` CLI for all operations.
 
 ## Ticket kinds
 
