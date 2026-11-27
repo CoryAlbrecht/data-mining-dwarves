@@ -68,16 +68,20 @@ Issue the three sub-agent calls together, in the foreground, and aggregate the r
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
 - The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
+**Attachments**: if the work has an attachments folder (**Attachments** in `docs/agents/workflow.md`), or a reviewer has downloaded a PR's uploads into its scratchpad, give the Spec and Acceptance sub-agents the absolute path of every such file.
+
 **Spec sub-agent prompt** should include:
 
 - The diff command and commit list.
 - The path or fetched contents of the spec.
+- The attachment paths, if any.
 - The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
 
 **Acceptance sub-agent prompt** should include:
 
 - The diff command and commit list (or the list of new files).
 - The ticket references, to fetch with the tracker workflow, so it reads each ticket's acceptance criteria itself.
+- The attachment paths, if any, with this line: "Read each attachment and judge what it shows. Whether it is uploaded to GitHub is outside this review: a criterion that asks for it to be attached passes when the file shows what the criterion asks."
 - The brief: "For every acceptance criterion of every ticket, give PASS or FAIL with the evidence (file and line, a test name, or a command you ran and its output). Run the repo's verify commands. A criterion you can't check from here is FAIL with the reason. Under 400 words."
 
 Every sub-agent ends its report with one line: `VERDICT: APPROVE` or `VERDICT: CHANGES NEEDED`.

@@ -159,7 +159,7 @@ You may use one of these, you may use several, it is unlikely you will use all o
 
 Concrete evidence that the change works. Show a before and after.
 
-Screenshots are S-tier - when the environment is set up for it and the change is visual.
+Screenshots are S-tier - when the environment is set up for it and the change is visual. Agents can't upload them: name the file here and hand it over as **Attachments** in `docs/agents/workflow.md` says.
 
 Execution-based evidence is A-tier. Test results, console output. Show the exact test that now fails and passes, using pseudocode.
 

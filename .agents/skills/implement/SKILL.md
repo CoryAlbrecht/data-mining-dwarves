@@ -14,12 +14,12 @@ Implement the work described by the user in the spec or tickets, on its own bran
 
 4. **Build.** Call the Skill tool with "tdd" where possible, at pre-agreed seams. Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-5. **Self-check.** Call the Skill tool with "code-review" on the uncommitted work. Commit only when every reviewer approves; until then, fix the findings and re-review.
+5. **Self-check.** Save any attachment the PR needs first (**Attachments** in `docs/agents/workflow.md`). Call the Skill tool with "code-review" on the uncommitted work. Commit only when every reviewer approves; until then, fix the findings and re-review.
 
 6. **Commit.** Commit with a Conventional Commits subject naming the issue (form and scopes: **Branches** in `docs/agents/workflow.md`).
 
-7. **PR.** Push the branch with `git push -u origin HEAD`. Write the body with the Skill tool "pr"; it carries `Closes #<issue>` (one line per closed issue) and, if step 3 picked the type, which type and why. Open it with `gh pr create`, the title in the same Conventional Commits form, then `gh pr edit <n> --add-label ready-for-agent`.
+7. **PR.** Push the branch with `git push -u origin HEAD`. Write the body with the Skill tool "pr"; it carries `Closes #<issue>` (one line per closed issue) and, if step 3 picked the type, which type and why. Open it with `gh pr create`, the title in the same Conventional Commits form, then `gh pr edit <n> --add-label ready-for-agent`. With attachments, label it `ready-for-human` in place of `ready-for-agent` and hand them over as **Attachments** says.
 
 8. **Clean up.** The branch now lives at `origin`, so leave the worktree as **Leaving a worktree** in `docs/agents/workflow.md` says. (If the session was already in a worktree at step 2, leave that worktree as it was.)
 
-9. **Hand off.** Report the PR link and stop. A different session reviews and merges it (`/review-pr`); this session's part ends at the PR.
+9. **Hand off.** Report the PR link (after the attachments checklist, if any) and stop. A different session reviews and merges it (`/review-pr`); this session's part ends at the PR.

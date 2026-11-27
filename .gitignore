@@ -11,3 +11,4 @@ coverage/
 .vite/
 .serve-private/
 .claude/worktrees/
+/attachments/
