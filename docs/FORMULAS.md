@@ -365,7 +365,7 @@ One uniform roll picks the kind:
 | bytes | 55% | `byteLoot` below |
 | device | 24% | One of this Mine's producing Devices, evenly |
 | fork | 3% | fork() chips |
-| network | 6% | This Mine's start technology or the next one (the next only from depth 2), evenly |
+| portTech | 6% | This Mine's start technology or the next one (the next only from depth 2), evenly |
 | other | 9% | A producing model not in this Mine, at most 4 tiers above this Mine's model of that kind (any tier if the Mine has none of that kind). Falls back to bytes if there are none. |
 | duplex | 1.5% | 1 Duplex chip |
 | cron | 1.5% | 1 cron job |
@@ -386,7 +386,7 @@ Byte loot depends on **depth**, not on the rock's Level.
 ### Chip stacks
 
 ```
-chipCount(r)          = ceil(r / 3) + (1 with 20% chance)      model chips: Device, fork(), network
+chipCount(r)          = ceil(r / 3) + (1 with 20% chance)      model chips: Device, fork(), Port technology
 encryptedChipCount(r) = 3 · ceil(r / 3)                        no bonus chip
 Duplex and cron       = always 1
 ```
@@ -405,8 +405,8 @@ each rock at the hardest Level has encryptedShare = 25% chance to be encrypted
 ```
 
 The chip is picked from `encryptedChipPool`: each producing Device's chip twice, fork() once, and
-each network chip once (`LOOT.encryptedWeights`). That makes a Device chip twice as likely as any
-one other chip.
+each Port technology chip once (`LOOT.encryptedWeights`). That makes a Device chip twice as likely
+as any one other chip.
 
 ---
 

@@ -206,8 +206,8 @@ export function tables(): Table[] {
         ['device', pct(s.device), "One of this Mine's producing Devices, evenly"],
         ['fork', pct(s.fork), 'fork() chips'],
         [
-          'network',
-          pct(s.network),
+          'portTech',
+          pct(s.portTech),
           `This Mine's start technology or the next one (the next only from depth ${LOOT.nextTechFromDepth}), evenly`,
         ],
         [
