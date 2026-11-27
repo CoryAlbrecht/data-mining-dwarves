@@ -20,5 +20,6 @@ On a PR the two ready labels say whose move it is (lifecycle in `workflow.md`):
 
 - `ready-for-agent`: an agent acts next, reviewing or fixing it (`workflow.md`, PR lifecycle
   step 5).
-- `ready-for-human`: a review asked for changes or hit a rebase conflict. Agents leave the PR
-  alone until the human answers and relabels it `ready-for-agent`.
+- `ready-for-human`: a review asked for changes or hit a rebase conflict, or the PR waits for the
+  human to upload its attachments (`workflow.md`, **Attachments**). Agents leave the PR alone
+  until the human answers or uploads and relabels it `ready-for-agent`.

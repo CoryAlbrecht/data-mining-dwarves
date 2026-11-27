@@ -38,6 +38,8 @@ than the verdict comment's `createdAt`.
 3. Call the Skill tool with `code-review`. Fixed point: `origin/main`. Spec source: the issues
    in `closingIssuesReferences`; the Acceptance axis checks every criterion of each. Report the
    findings and leave the code as it is: fixing is a later session's role.
+   If the PR has an `Attachments needed:` comment, pass the downloaded uploads to `code-review`
+   and judge each one (**Attachments** in `docs/agents/workflow.md`).
 4. The **verdict** is `approve` when every check passed and all three axes approve; anything
    else is `changes requested`.
 5. An `approve` verdict is made merge-ready before it is posted. `git fetch origin main`; if
@@ -57,12 +59,15 @@ than the verdict comment's `createdAt`.
 
 **Approve**:
 
+If the approval rests on an attachment this session made, hand it over as **Attachments** says,
+relabel as in **Changes requested** below, and stop without merging.
+
 1. `gh pr merge <n> --squash` (the squash commit takes the PR title).
 2. Delete the remote branch if GitHub's auto-delete left it: when
    `git ls-remote --exit-code --heads origin <branch>` finds it, `git push origin --delete <branch>`.
 3. Leave the worktree (**Leaving a worktree** in `docs/agents/workflow.md`).
 4. In the main checkout (the first path in `git worktree list`), run `git pull --ff-only`: the
-   only git write a session makes there.
+   only git write a session makes there. Then delete the PR's `attachments/<issue>/` folder as **Attachments** says.
 
 **Changes requested** (a failed check, a rebase conflict or review findings): hand the PR to the
 human, leave the worktree (as above), and stop.

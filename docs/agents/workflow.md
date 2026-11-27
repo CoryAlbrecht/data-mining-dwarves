@@ -11,7 +11,7 @@ different session reviews and merges. Why agents merge their own PRs:
   pre-commit hook needs those deps; `core.hooksPath=.githooks` already applies in every worktree.
 - A read-only session (questions, grilling, a review that only comments) may stay in the main
   checkout. The main checkout belongs to the human: leave its files and its uncommitted work as
-  they are.
+  they are. The one exception is `attachments/` (**Attachments**).
 
 ### Leaving a worktree
 
@@ -49,18 +49,21 @@ the session that opened a PR or pushed to it never reviews it. A session that ha
 relabelling it also drops its claim (`--remove-assignee @me`), so the next session can take it.
 
 1. **Author**: run `/code-review` on the branch as a self-check, push, open the PR with
-   `Closes #n` in the body (one line per closed issue), and label it `ready-for-agent`. The
-   branch now lives at `origin`, so leave your worktree (**Leaving a worktree**), then stop.
+   `Closes #n` in the body (one line per closed issue), and label it `ready-for-agent`, or
+   `ready-for-human` when it has attachments (**Attachments**). The branch now lives at
+   `origin`, so leave your worktree (**Leaving a worktree**), then stop.
    `/implement` and `/implement-spec` do all of this.
 2. **Reviewer** (`/review-pr`): check the PR out in your own worktree and run
-   `npm run typecheck && npm test && npm run build` (plus CI once it exists). Post a PR comment
-   whose first line is exactly `Verdict: approve` or `Verdict: changes requested`, followed by the
-   reasons. The verdict is a comment because GitHub refuses a review approval from the account
-   that opened the PR, and every session shares one account.
+   `npm run typecheck && npm test && npm run build` (plus CI once it exists), and judge the PR's
+   attachments, if any (**Attachments**). Then post a PR comment whose first line is exactly
+   `Verdict: approve` or `Verdict: changes requested`, followed by the reasons. The verdict is a
+   comment because GitHub refuses a review approval from the account that opened the PR, and
+   every session shares one account.
 3. **Approved**: if `main` has moved, rebase the branch onto it and rerun the checks. Then
    `gh pr merge --squash` (the commit title is the PR title), delete the branch, leave your
    worktree (**Leaving a worktree**), and run `git pull --ff-only` in the main checkout. The
-   merge needs no human step.
+   merge needs no human step, unless the approval rests on the reviewer's own attachment
+   (**Attachments**).
 4. **Changes requested**: set the label to `ready-for-human` and stop. A rebase conflict counts as
    changes requested: the reviewer reports it and leaves it unresolved. The human
    answers in a PR comment or a conversation, then relabels `ready-for-agent`.
@@ -72,6 +75,36 @@ relabelling it also drops its claim (`--remove-assignee @me`), so the next sessi
    - Last verdict `Verdict: changes requested` with no commits after it → fix it: address the
      verdict and the human's answer, push, and set `ready-for-agent`. The next review comes from
      another session.
+
+## Attachments
+
+An **attachment** is a file a PR needs as proof for Standards, Spec or Acceptance: a ticket's
+criteria ask for it, it shows a visual change (a screenshot is the best Evidence, see `/pr`), or a
+verdict asks for it. GitHub has no API for attachments, so only the human can upload one, in a
+browser. Attachments go on PRs only: a ticket describes a screenshot in words.
+
+- **Keep** each attachment in `attachments/<issue>/` in the main checkout (git-ignored; Edit
+  and Write may create it), where `<issue>` is the issue number in the branch name: the lone
+  ticket, or the spec on a spec branch. Make the files before `/code-review`, which hands the
+  folder to its Spec and Acceptance subagents. They judge what each file shows; that it is not
+  yet on GitHub is no FAIL, since only the review after the upload can check that.
+- **Hand over.** Open the PR labelled `ready-for-human` and post a PR comment whose first line
+  is exactly `Attachments needed:`. Put the same checklist at the top of the session's final
+  message, and send each file with `SendUserFile` where the session has it. The checklist gives,
+  for each file, its absolute path, where it goes (e.g. "PR #71, new comment") and one line on
+  what it proves, then ends:
+  1. Upload the files.
+  2. Relabel the PR `ready-for-agent`.
+  3. Run `/review-pr <pr>` in a new session.
+- **Review.** A reviewer reads the latest `Attachments needed:` comment, finds each upload's
+  URL in the PR comments after it, and downloads the file into its scratchpad to judge it:
+  `curl -L -H "Authorization: token $(gh auth token)" <url>`. A file that is missing or does not show what it should makes the verdict
+  `changes requested`.
+- **A reviewer's own attachment** that backs a verdict is handed over the same way. An approval
+  that rests on one is posted but not merged: the PR goes `ready-for-human`, and after the
+  relabel the next session reviews it again (PR lifecycle step 5).
+- **Clean up.** The session that merges the PR deletes `attachments/<issue>/` once every listed
+  file is on GitHub.
 
 ## Picking up work
 

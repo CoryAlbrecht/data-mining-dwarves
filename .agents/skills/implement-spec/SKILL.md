@@ -37,10 +37,10 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets. This allows for maximum concurrency.
 
-7. Once all tickets are complete, call the Skill tool with `code-review` on the integration branch. Fix all issues raised by the code review in a single fresh **implementer subagent**, merged back as in step 5.
+7. Once all tickets are complete, save any attachment the PR needs (**Attachments** in `docs/agents/workflow.md`), then call the Skill tool with `code-review` on the integration branch. Fix all issues raised by the code review in a single fresh **implementer subagent**, merged back as in step 5.
 
-8. Open the PR from the integration worktree: push with `git push -u origin HEAD`, write the body with the Skill tool `pr` (one `Closes #n` line for the spec and one for every ticket), open it with `gh pr create` titled in Conventional Commits form, e.g. `feat: agent workflow (#37)`, then `gh pr edit <n> --add-label ready-for-agent`.
+8. Open the PR from the integration worktree: push with `git push -u origin HEAD`, write the body with the Skill tool `pr` (one `Closes #n` line for the spec and one for every ticket), open it with `gh pr create` titled in Conventional Commits form, e.g. `feat: agent workflow (#37)`, then `gh pr edit <n> --add-label ready-for-agent`. With attachments, label it `ready-for-human` in place of `ready-for-agent` and hand them over as **Attachments** says.
 
 9. Clean up every worktree. `git worktree list` shows no implementer worktree and `git branch --list 'feat/<spec>-<slug>--*'` is empty; remove any left over as in step 5. Then leave the integration worktree as **Leaving a worktree** in `docs/agents/workflow.md` says: the branch lives on at `origin`.
 
-10. Report the PR link and stop. A different session reviews and merges it (`/review-pr`); this session's part ends at the PR.
+10. Report the PR link (after the attachments checklist, if any) and stop. A different session reviews and merges it (`/review-pr`); this session's part ends at the PR.
