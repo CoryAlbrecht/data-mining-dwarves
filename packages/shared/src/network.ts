@@ -3,7 +3,7 @@
  * levels fit through; its level (raised with that technology's chips) sets how many may pass.
  * Switching to a newer technology resets the port to level 1.
  */
-export interface NetworkTech {
+export interface PortTech {
   /** Also the id of the chips that upgrade it. */
   id: string;
   name: string;
@@ -13,7 +13,7 @@ export interface NetworkTech {
   speeds: readonly string[];
 }
 
-export const NETWORK_TECHS = [
+export const PORT_TECHS = [
   {
     id: 'net:serial',
     name: 'Serial Port',
@@ -25,27 +25,27 @@ export const NETWORK_TECHS = [
   { id: 'net:ethernet-10m', name: '10BASE-T Ethernet', maxDwarfLevel: 7, speeds: ['10 Mbps'] },
   { id: 'net:fast-ethernet', name: 'Fast Ethernet', maxDwarfLevel: 8, speeds: ['100 Mbps'] },
   { id: 'net:gigabit', name: 'Gigabit Ethernet', maxDwarfLevel: 9, speeds: ['1 Gbps'] },
-] as const satisfies readonly NetworkTech[];
+] as const satisfies readonly PortTech[];
 
-/** The id of one Port technology in NETWORK_TECHS. */
-export type NetworkTechId = (typeof NETWORK_TECHS)[number]['id'];
+/** The id of one Port technology in PORT_TECHS. */
+export type PortTechId = (typeof PORT_TECHS)[number]['id'];
 
-/** One entry of NETWORK_TECHS, with its id narrowed to a NetworkTechId. */
-export type NetworkTechEntry = (typeof NETWORK_TECHS)[number];
+/** One entry of PORT_TECHS, with its id narrowed to a PortTechId. */
+export type PortTechEntry = (typeof PORT_TECHS)[number];
 
 /** The Port technology with this id. */
-export function networkTech(id: NetworkTechId): NetworkTechEntry {
-  return NETWORK_TECHS.find((t) => t.id === id)!;
+export function portTech(id: PortTechId): PortTechEntry {
+  return PORT_TECHS.find((t) => t.id === id)!;
 }
 
-/** The id of the Port technology at this position in NETWORK_TECHS; past the end, the last one. */
-export function networkTechAt(index: number): NetworkTechId {
-  return NETWORK_TECHS[Math.min(index, NETWORK_TECHS.length - 1)]!.id;
+/** The id of the Port technology at this position in PORT_TECHS; past the end, the last one. */
+export function portTechAt(index: number): PortTechId {
+  return PORT_TECHS[Math.min(index, PORT_TECHS.length - 1)]!.id;
 }
 
 /** The Port technology a port rewires to after this one, or undefined after the last. */
-export function nextNetworkTech(id: NetworkTechId): NetworkTechEntry | undefined {
-  return NETWORK_TECHS[NETWORK_TECHS.findIndex((t) => t.id === id) + 1];
+export function nextPortTech(id: PortTechId): PortTechEntry | undefined {
+  return PORT_TECHS[PORT_TECHS.findIndex((t) => t.id === id) + 1];
 }
 
 /** Chip that lets dwarves travel back up through a port. */
@@ -54,7 +54,7 @@ export const DUPLEX_CHIP = 'duplex';
 export const CRON_CHIP = 'cron';
 
 export interface PortState {
-  tech: NetworkTechId;
+  tech: PortTechId;
   level: number;
   duplex: boolean;
   /** Dwarves currently on the far side that came through this port. */
@@ -69,6 +69,6 @@ export function portCapacity(level: number): number {
 }
 
 export function portSpeed(port: PortState): string {
-  const t = networkTech(port.tech);
+  const t = portTech(port.tech);
   return t.speeds[Math.min(port.level, t.speeds.length) - 1]!;
 }

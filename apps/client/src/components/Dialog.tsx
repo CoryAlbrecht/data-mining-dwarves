@@ -8,10 +8,10 @@ import {
   dwarfPrice,
   FORGE_ID,
   getDeviceModel,
-  networkTech,
-  nextNetworkTech,
+  nextPortTech,
   portCapacity,
   portSpeed,
+  portTech,
 } from '@dmd/shared';
 import type { MouseEvent, ReactNode } from 'react';
 import { formatBytes } from '../game/format.ts';
@@ -130,8 +130,8 @@ function PortDetails({ lvl }: { lvl: LevelState }) {
   }
 
   const port = lvl.port.value;
-  const tech = networkTech(port.tech);
-  const next = nextNetworkTech(port.tech);
+  const tech = portTech(port.tech);
+  const next = nextPortTech(port.tech);
   return (
     <>
       <h3>

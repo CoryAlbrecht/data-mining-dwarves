@@ -29,7 +29,7 @@ import {
   MONSTER_SPAWN,
   monsterFor,
   MONSTERS,
-  NETWORK_TECHS,
+  PORT_TECHS,
   PART_PACE,
   placeOf,
   portCapacity,
@@ -292,10 +292,10 @@ export function tables(): Table[] {
   // ── 8. Network ──
   add('port-capacity', wide('Port Level', [1, 2, 3, 4, 5, 6, 8, 10], String, [['Capacity', portCapacity]]));
   add(
-    'network-techs',
+    'port-techs',
     table(
       ['#', 'Technology', 'Highest dwarf it carries', 'Speed label'],
-      NETWORK_TECHS.map((tech, i) => [
+      PORT_TECHS.map((tech, i) => [
         i,
         tech.name,
         `L${tech.maxDwarfLevel}`,

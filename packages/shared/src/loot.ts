@@ -1,5 +1,5 @@
 /**
- * What a bit-rock holds when it breaks. A model chip (a Device, fork() or Network technology)
+ * What a bit-rock holds when it breaks. A model chip (a Device, fork() or Port technology)
  * comes as a small stack that grows with the rock's Level; duplex and cron chips come singly.
  */
 export const LOOT = {
@@ -18,7 +18,7 @@ export const LOOT = {
   encryptedWeights: { device: 2, fork: 1, network: 1 },
   /** "Other" chips go at most this many ladder tiers above this Mine's model of the same kind. */
   otherTierWindow: 4,
-  /** The next Network technology's chips drop from this depth on. */
+  /** The next Port technology's chips drop from this depth on. */
   nextTechFromDepth: 2,
   /**
    * Share of ordinary bit-rocks holding each kind of loot (adds up to 1). Chips for this Mine's
@@ -29,7 +29,7 @@ export const LOOT = {
     /** Chips for this Mine's producing Devices (CPU, DRAM, storage, VRAM), picked evenly. */
     device: 0.24,
     fork: 0.03,
-    /** Chips for this Mine's Network technologies, picked evenly. */
+    /** Chips for this Mine's Port technologies, picked evenly. */
     network: 0.06,
     /** Chips for models that aren't in this Mine. */
     other: 0.09,

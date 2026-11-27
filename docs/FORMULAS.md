@@ -523,7 +523,7 @@ A dwarf that comes back up through the Entry (with duplex) frees its place.
 
 ### Technology
 
-<!-- network-techs -->
+<!-- port-techs -->
 | # | Technology | Highest dwarf it carries | Speed label |
 | --- | --- | --- | --- |
 | 0 | Serial Port | L4 | 300 baud → 115.2 kbps across Levels 1–8 |
